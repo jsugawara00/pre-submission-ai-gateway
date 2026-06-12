@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# 設計ドキュメントの原本（docs/等に配置済みのため重複コミットを避ける）
+/settingfile
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 申請前AI検問所 — Pre-submission Validation Gateway
 
-## Getting Started
+**30年の貿易実務で見てきた書類ミスの痛みを、AIエージェントで解消する。**
 
-First, run the development server:
+申請・申告の内容と元資料（インボイス、パッキングリスト、B/L等）をAIが照合し、転記ミス・資料間矛盾・不審箇所を提出前に検出するWebアプリケーションです。題材には通関業務（NACCSの輸入申告事項登録）を参考にした疑似申告業務を採用していますが、仕組みは特定業務に依存せず、申請書と添付書類を扱うあらゆる業務に展開できます。
+
+<!-- TODO: デモGIFをここに -->
+
+## なぜ作ったか
+
+既存の申告システム（NACCS等）は入力の形式やシステム内DBとの整合性をチェックします。しかし、**入力された値が元資料と合っているか**は構造的にチェックできません。インボイス価格の桁誤りも、通貨の取り違えも、形式が正しければ素通りします。だから現場には「登録内容を印刷して、人間が元資料と目視で突き合わせる」工程が残り続けてきました。
+
+本システムは、その「人間の目視照合」をAIエージェントが担います。既存システムの再現ではなく、既存システムがやらない側の補完です。
+
+## 2つの導入アプローチを1つのエンジンで
+
+| モード | 想定する導入形態 |
+|---|---|
+| **事前モード（Built-in）** | 申請システムにAIチェックを融合するとこうなる、という組み込み型のリファレンス。フォーム入力＋資料添付で、登録前に該当フィールドへインラインエラーを表示 |
+| **事後モード（Add-on）** | 既存システムに一切触れず、出力された帳票PDFと元資料から後付けでAIチェックを始められる、という非侵襲導入の証明 |
+
+両モードは**同一の照合エンジンと同一のレポートUI**を共有します。導入形態は選べる、エンジンは一つでよい——この構成自体が本プロジェクトのメッセージです。
+
+## ハルシネーション三層防御
+
+AIの照合システムで最も危険なのは「読めないものを、それらしく読んでしまう」ことです。本システムは三層で防ぎます。
+
+1. **unverified** — 資料が足りず照合できない項目は「問題なし」に混ぜず、照合できなかったと明示する
+2. **clarifications（聞き返し機能）** — FAX由来の不鮮明な文字などは推測せず、該当箇所の画像と候補を添えて人間に質問する
+3. **検算ループ** — 人間の回答も鵜呑みにせず、他の数値・文脈と突き合わせて整合した時点で確定する。確定の経緯は監査ログに記録される
+
+<!-- TODO: 確認チャットのスクリーンショット -->
+
+## 技術スタック
+
+TypeScript / Next.js (App Router) / Claude API（PDF直接読解・JSON構造化出力）/ MySQL / zod
+
+<!-- TODO: アーキテクチャ図 -->
+
+## セキュリティ設計
+
+- APIキーはサーバーサイドのみ。クライアントに露出しない
+- アップロードはMIME＋マジックバイト検証、原本は暗号化保存しDBにはハッシュのみ
+- 全操作の監査ログ（誰が・いつ・何を）
+- AIの役割は事実の検出まで。登録可否の判定（verdict）はサーバー側コードが算出し、最終判断は人間が行う
+
+## セットアップ
 
 ```bash
+git clone https://github.com/<username>/pre-submission-ai-gateway.git
+cd pre-submission-ai-gateway
+npm install
+cp .env.example .env.local  # APIキーとDB接続情報を設定
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ロードマップ
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- [x] 設計（設計書v0.3 / 照合エンジンJSONスキーマv0.2 / ワイヤーフレーム5画面）
+- [ ] Phase 1: 照合エンジン＋事後モード
+- [ ] Phase 1.5: 聞き返し機能（確認チャット）
+- [ ] Phase 2: 事前モード＋About
+- [ ] Phase 3: メール／複合機（scan to email）からの自動取り込み
+- [ ] Phase 4: NACCS入力フォーマット対応出力、他業界テンプレート
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 作者
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+貿易・物流の実務に約30年従事。現在はAI×ドメイン知識を軸にITエンジニアへ転身中。
+設計の詳細は [docs/設計書_v0.3.md](docs/設計書_v0.3.md) を参照してください。
