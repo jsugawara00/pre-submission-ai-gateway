@@ -1,0 +1,185 @@
+.container {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+/* 判定バナー */
+.banner {
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.bannerBlocked {
+  border-left: 6px solid var(--verdict-blocked);
+}
+.bannerWarning {
+  border-left: 6px solid var(--verdict-warning);
+}
+.bannerPass {
+  border-left: 6px solid var(--verdict-pass);
+}
+.bannerTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.verdictLabel {
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  color: #fff;
+}
+.verdictBlocked {
+  background: var(--verdict-blocked);
+}
+.verdictWarning {
+  background: var(--verdict-warning);
+}
+.verdictPass {
+  background: var(--verdict-pass);
+}
+.headline {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.counts strong {
+  color: var(--foreground);
+}
+
+/* セクション */
+.section {
+  margin-top: 32px;
+}
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--border);
+}
+.empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* リスク／確信度バッジ */
+.badge {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.high {
+  color: var(--risk-high);
+  background: var(--risk-high-bg);
+}
+.medium {
+  color: var(--risk-medium);
+  background: var(--risk-medium-bg);
+}
+.low {
+  color: var(--risk-low);
+  background: var(--risk-low-bg);
+}
+
+/* finding カード */
+.card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  background: var(--surface);
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.cardTitle {
+  font-weight: 700;
+}
+.category {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 8px 0;
+  font-size: 0.92rem;
+}
+.valueLabel {
+  color: var(--muted);
+  margin-right: 6px;
+}
+.declared {
+  color: var(--risk-high);
+  font-weight: 600;
+}
+.source {
+  font-weight: 600;
+}
+.reason {
+  font-size: 0.92rem;
+  margin: 8px 0;
+}
+.suggestion {
+  font-size: 0.9rem;
+  color: var(--muted);
+  background: #f1f4f8;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.refs {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* documents / unverified / clarifications の行 */
+.row {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--surface);
+}
+.rowHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.docType {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.candidates {
+  margin-top: 6px;
+  font-size: 0.85rem;
+}
+.candidate {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 8px;
+  margin: 2px 6px 2px 0;
+}

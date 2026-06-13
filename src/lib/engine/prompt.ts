@@ -1,0 +1,96 @@
+/**
+ * 照合プロンプトの組み立て（CLAUDE.md 第5章 / スキーマ設計v0.2 第4章）。
+ *
+ * システムプロンプトに必ず含める要素:
+ *  - 「JSONのみを返す。前置き・コードフェンス禁止」
+ *  - 「照合できない項目は推測せず unverified に入れる」（ハルシネーション第1層）
+ *  - 「判読確信度が低い文字は推測せず、候補と確信度を添えて clarifications に入れる」（第2層）
+ *  - 判定手順 ①書類種別判定→②キー項目抽出→③申告側と照合→④資料間照合→⑤資料内検算→⑥findings生成
+ */
+
+import { DETECTED_TYPES, KNOWN_FIELD_KEYS, type Mode } from "./schema";
+
+const OUTPUT_SHAPE = `{
+  "check_id": string,                       // サーバーが付与するため空文字でよい
+  "mode": "pre" | "post",
+  "documents": [
+    { "doc_id": string, "detected_type": string, "detected_type_label": string,
+      "confidence": number(0-1), "summary": string }
+  ],
+  "findings": [
+    { "finding_id": string,
+      "category": "transcription_error" | "document_mismatch" | "anomaly",
+      "field_key": string | null, "field_label": string,
+      "declared_value": string | null, "source_value": string | null,
+      "source_refs": [ { "doc_id": string, "page": number | null, "location": string } ],
+      "risk": "high" | "medium" | "low", "reason": string, "suggestion": string }
+  ],
+  "unverified": [ { "field_key": string, "field_label": string, "reason": string } ],
+  "clarifications": [
+    { "clarification_id": string, "field_key": string | null, "field_label": string,
+      "doc_id": string, "page": number | null, "location": string,
+      "region_hint": { "x_pct": number, "y_pct": number, "w_pct": number, "h_pct": number } | null,
+      "ai_reading": string | null, "confidence": number(0-1), "candidates": string[],
+      "question": string, "status": "open" }
+  ],
+  "summary": {
+    "high": number, "medium": number, "low": number, "unverified": number,
+    "clarifications_open": number, "verdict": "blocked" | "warning" | "pass", "headline": string
+  }
+}`;
+
+/** 照合エンジンのシステムプロンプトを組み立てる。 */
+export function buildSystemPrompt(): string {
+  return `あなたは輸入申告の書類照合を行う検査エンジンです。アップロードされたPDF（申告登録帳票・インボイス・パッキングリスト・B/L等）を読み取り、転記ミス・資料間の矛盾・資料内の計算不整合を検出します。
+
+# 最重要の出力ルール
+- 出力は下記スキーマに厳密準拠したJSONのみ。前置き・説明文・コードフェンス（\`\`\`）は一切付けない。
+- 1文字目が「{」、最後の文字が「}」になること。
+
+# ハルシネーション防止（厳守）
+- 照合に必要な資料が無い・該当箇所が見つからない項目は、推測で findings に入れず unverified に入れる（理由を明記）。
+- 文字が不鮮明で判読確信度が低い箇所は、勝手に1つに確定せず clarifications に入れる。読めた候補（candidates）と確信度（confidence, 0-1）を添え、status は "open" とする。
+
+# 判定手順（この順で行う）
+1. 各書類の種別を判定（detected_type）
+2. 各書類からキー項目を抽出
+3. 申告側（登録帳票/フォーム）と元資料を照合 → 不一致は category="transcription_error"
+4. 元資料どうしを照合 → 不一致は category="document_mismatch"
+5. 単一資料内の計算を検算（単価×数量=行合計、合計の整合等）→ 不整合は category="anomaly"
+6. 検出結果を findings として生成。各 finding には判断根拠 source_refs（どの書類の・何ページ・どの欄か）を必ず付ける
+
+# リスク区分（risk）
+- high: 課税価格や税額に直接影響する不一致、桁・数字の入れ違いなど重大なもの
+- medium: 業務確認が必要だが直ちに重大ではない差異
+- low: 端数処理など軽微なもの
+
+# verdict / summary について
+- verdict と summary の件数はサーバー側で再計算する。あなたは findings/unverified/clarifications を正確に出すことに集中し、summary は素直な集計値を入れてよい（headline は日本語で1文）。
+
+# 語彙の制約
+- detected_type は次のいずれか: ${DETECTED_TYPES.join(", ")}
+- field_key は機械用ID（英語snake_case）。代表的なキー: ${KNOWN_FIELD_KEYS.join(", ")}。欄ごとの明細項目は hs_code_1 / item_name_1 / quantity_1 / line_price_1 のように連番を付ける。該当キーが無い場合のみ null。
+- field_label は日本語の表示名。
+
+# 出力スキーマ
+${OUTPUT_SHAPE}`;
+}
+
+/** ユーザーメッセージ本文（PDFはdocumentブロックで別途添付され、本文はモードと申告値を伝える）。 */
+export function buildUserText(mode: Mode, formInput?: Record<string, unknown> | null): string {
+  const lines: string[] = [];
+  if (mode === "pre") {
+    lines.push("【事前モード】以下は登録前の疑似申告フォーム入力値です。これを申告側として、添付資料と照合してください。");
+    lines.push("申告フォーム入力値(JSON):");
+    lines.push(JSON.stringify(formInput ?? {}, null, 2));
+  } else {
+    lines.push("【事後モード】添付PDFには登録済みの申告帳票と元資料が含まれます。帳票を申告側として、元資料と照合してください。");
+  }
+  lines.push("");
+  lines.push("上記スキーマのJSONのみを返してください。");
+  return lines.join("\n");
+}
+
+/** リトライ時にJSON厳守を強める追記。 */
+export const RETRY_INSTRUCTION =
+  "\n\n（重要）前回の出力はJSONとして解析できませんでした。スキーマに厳密準拠したJSONのみを、前置き・コードフェンスなしで返してください。";

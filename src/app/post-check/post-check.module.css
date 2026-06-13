@@ -1,0 +1,101 @@
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 20px 64px;
+}
+.back {
+  font-size: 0.9rem;
+}
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 12px 0 4px;
+}
+.lead {
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone:hover {
+  border-color: var(--primary);
+  background: #f3f7ff;
+}
+.dropzoneHint {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+.hiddenInput {
+  display: none;
+}
+.fileList {
+  margin: 18px 0 0;
+  list-style: none;
+}
+.fileItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+.fileSize {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.removeBtn {
+  border: none;
+  background: transparent;
+  color: var(--risk-high);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.submit {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.submit:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+.submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.error {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--risk-high-bg);
+  color: var(--risk-high);
+  font-size: 0.9rem;
+}
+.progress {
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}

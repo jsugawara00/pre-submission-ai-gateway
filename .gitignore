@@ -42,3 +42,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 暗号化済みアップロードPDFの保存先（gitには含めない）
+/storage
