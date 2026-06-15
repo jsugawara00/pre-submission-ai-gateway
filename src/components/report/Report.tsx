@@ -6,6 +6,7 @@ import type { CheckResult } from "@/lib/engine/schema";
 import { VerdictBanner } from "./VerdictBanner";
 import { FindingCard } from "./FindingCard";
 import { ClarificationPanel } from "@/components/clarification/ClarificationPanel";
+import { NaccsExport } from "./NaccsExport";
 import styles from "./report.module.css";
 
 export function Report({ result, checkId }: { result: CheckResult; checkId: string }) {
@@ -63,6 +64,9 @@ export function Report({ result, checkId }: { result: CheckResult; checkId: stri
           ))
         )}
       </section>
+
+      {/* NACCS（IDA）疑似サマリ出力（両モード共通。form_inputが無ければサーバーが出力対象なしを返す） */}
+      <NaccsExport checkId={checkId} />
     </main>
   );
 }
