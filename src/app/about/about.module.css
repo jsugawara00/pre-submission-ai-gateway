@@ -1,0 +1,112 @@
+.container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 48px 20px 24px;
+}
+.back {
+  display: inline-block;
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.lead {
+  margin: 12px 0 8px;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.section {
+  margin-top: 40px;
+}
+.h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.section p {
+  margin: 12px 0;
+}
+.emphasis {
+  border-left: 3px solid var(--primary);
+  background: var(--surface);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+}
+
+.modeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+@media (max-width: 640px) {
+  .modeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+.modeCard {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  background: var(--surface);
+}
+.modeName {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.modeDesc {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 0.92rem;
+}
+.table th,
+.table td {
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.table thead th {
+  background: var(--surface);
+  font-weight: 700;
+}
+.table td:first-child {
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--muted);
+}
+.table code {
+  font-family: var(--font-geist-mono), monospace;
+  background: #eef2f7;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+
+.docLinks {
+  font-size: 0.95rem;
+}
+
+.bottomNav {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+}
