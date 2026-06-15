@@ -14,7 +14,8 @@ const OUTPUT_SHAPE = `{
   "check_id": string,                       // サーバーが付与するため空文字でよい
   "mode": "pre" | "post",
   "documents": [
-    { "doc_id": string, "detected_type": string, "detected_type_label": string,
+    { "doc_id": string,                     // 各PDFのタイトルに付された d1, d2, … をそのまま使う
+      "detected_type": string, "detected_type_label": string,
       "confidence": number(0-1), "summary": string }
   ],
   "findings": [
@@ -46,6 +47,11 @@ export function buildSystemPrompt(): string {
 # 最重要の出力ルール
 - 出力は下記スキーマに厳密準拠したJSONのみ。前置き・説明文・コードフェンス（\`\`\`）は一切付けない。
 - 1文字目が「{」、最後の文字が「}」になること。
+
+# 書類の参照ID（doc_id）— 厳守
+- 添付された各PDFには、タイトルとして doc_id（d1, d2, …）が付与されている（1番目のPDF=d1, 2番目=d2, …）。
+- documents[].doc_id・findings[].source_refs[].doc_id・clarifications[].doc_id は、必ずこのタイトルの doc_id をそのまま使う。
+- doc1 / 資料A のような独自の採番・呼称を作ってはならない。これは指摘内容を原本PDFに正確に紐づけるために不可欠である。
 
 # ハルシネーション防止（厳守）
 - 照合に必要な資料が無い・該当箇所が見つからない項目は、推測で findings に入れず unverified に入れる（理由を明記）。

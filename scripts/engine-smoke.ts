@@ -61,14 +61,26 @@ async function main() {
 
   console.log("\n=== 検出された書類 ===");
   for (const d of r.documents) {
-    console.log(`  [${d.detected_type}] ${d.detected_type_label} (conf ${d.confidence}) — ${d.summary}`);
+    console.log(`  ${d.doc_id}: [${d.detected_type}] ${d.detected_type_label} (conf ${d.confidence}) — ${d.summary}`);
   }
 
   console.log("\n=== findings ===");
   for (const f of r.findings) {
-    console.log(`  (${f.risk}/${f.category}) ${f.field_label}: 申告=${f.declared_value} 資料=${f.source_value}`);
+    const refs = f.source_refs.map((s) => s.doc_id).join(", ");
+    console.log(`  (${f.risk}/${f.category}) ${f.field_label}: 申告=${f.declared_value} 資料=${f.source_value} [参照: ${refs}]`);
     console.log(`      理由: ${f.reason}`);
   }
+
+  // doc_id整合の確認: source_refs / clarifications の doc_id が documents の doc_id（d1,d2,…）に含まれるか
+  const knownDocIds = new Set(r.documents.map((d) => d.doc_id));
+  const referenced = new Set<string>();
+  for (const f of r.findings) for (const s of f.source_refs) referenced.add(s.doc_id);
+  for (const c of r.clarifications) referenced.add(c.doc_id);
+  const unknown = [...referenced].filter((id) => !knownDocIds.has(id));
+  console.log("\n=== doc_id整合チェック ===");
+  console.log(`  documents の doc_id: [${[...knownDocIds].join(", ")}]`);
+  console.log(`  参照された doc_id  : [${[...referenced].join(", ")}]`);
+  console.log(unknown.length === 0 ? "  ✅ すべての参照が実在する書類を指しています" : `  ❌ 未知のdoc_id参照: ${unknown.join(", ")}`);
 
   if (r.unverified.length) {
     console.log("\n=== unverified（照合できず）===");

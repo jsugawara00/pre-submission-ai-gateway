@@ -80,15 +80,17 @@ export async function POST(request: Request): Promise<Response> {
     for (let i = 0; i < buffers.length; i++) {
       const buffer = buffers[i];
       const stored = await savePdfEncrypted(buffer, applicationId, i);
+      const docId = `d${i + 1}`;
       documents.push({
-        doc_id: `d${i + 1}`,
+        doc_id: docId,
         original_name: files[i].name,
         stored_path: stored.storedPath,
         sha256: stored.sha256,
         size_bytes: buffer.length,
         mime: "application/pdf",
       });
-      pdfInputs.push({ base64: buffer.toString("base64"), filename: files[i].name });
+      // 同じ docId をエンジンにも渡し、AI出力の doc_id をストレージ側と一致させる。
+      pdfInputs.push({ base64: buffer.toString("base64"), filename: files[i].name, docId });
     }
     await updateApplicationDocuments(applicationId, documents);
     await insertAuditLog({

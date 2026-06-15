@@ -27,6 +27,12 @@ function getClient(): Anthropic {
 export interface PdfInput {
   base64: string;
   filename?: string;
+  /**
+   * この書類の doc_id（d1, d2, …）。documentブロックの title に入れてAIに伝え、
+   * 出力の source_refs / clarifications の doc_id をストレージ側（applications.documents）と
+   * 一致させるために使う。省略時は渡された順に d1, d2, … を自動採番する。
+   */
+  docId?: string;
 }
 
 export interface ClaudeCallInput {
@@ -43,8 +49,10 @@ export interface ClaudeCallResult {
 }
 
 export async function callClaude(input: ClaudeCallInput): Promise<ClaudeCallResult> {
-  const content: Anthropic.ContentBlockParam[] = input.pdfs.map((pdf) => ({
+  const content: Anthropic.ContentBlockParam[] = input.pdfs.map((pdf, i) => ({
     type: "document",
+    // title に doc_id を入れることで、AIが各PDFを d1, d2, … として参照できる。
+    title: pdf.docId ?? `d${i + 1}`,
     source: {
       type: "base64",
       media_type: "application/pdf",
