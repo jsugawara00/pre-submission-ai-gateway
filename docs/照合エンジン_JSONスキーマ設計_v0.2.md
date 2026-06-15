@@ -3,6 +3,7 @@
 作成日: 2026年6月12日
 対象: 申請前AI検問所システム（設計書v0.3準拠）
 改訂: v0.2で`clarifications`（要確認）ブロックと聞き返しループを追加
+改訂: v0.2-改訂1（2026/06/15）でドキュメントに`role`（target／reference）を追加。事後モードの入力ゾーン分離に対応
 
 本書は、Claude APIに書類照合を行わせる際の「出力JSONスキーマ」と「設計判断」を定義する。
 このスキーマが事前モード（インラインエラー）と事後モード（レポート）の両方に給電する単一の型となる。
@@ -18,6 +19,7 @@
   "documents": [
     {
       "doc_id": "d1",
+      "role": "target",
       "detected_type": "declaration_form",
       "detected_type_label": "申告登録帳票",
       "confidence": 0.98,
@@ -25,6 +27,7 @@
     },
     {
       "doc_id": "d2",
+      "role": "reference",
       "detected_type": "invoice",
       "detected_type_label": "インボイス",
       "confidence": 0.97,
@@ -32,6 +35,7 @@
     },
     {
       "doc_id": "d3",
+      "role": "reference",
       "detected_type": "packing_list",
       "detected_type_label": "パッキングリスト",
       "confidence": 0.95,
@@ -197,8 +201,9 @@ detected_typeの語彙: `declaration_form` / `invoice` / `packing_list` / `bill_
 ## 4. Claude APIプロンプト設計の要点
 
 1. システムプロンプトで「上記スキーマのJSONのみを返す。前置き・コードフェンス禁止」を明示
-2. 書類PDF群をbase64のdocumentブロックで投入し、（事前モードでは）フォーム入力値をJSONで併送
-3. 判定手順を指示: ①各書類の種別判定 → ②キー項目の抽出 → ③申告側との照合 → ④資料間照合 → ⑤資料内の計算検算 → ⑥findings生成
+2. 書類PDF群をbase64のdocumentブロックで投入し、各ドキュメントのrole（target／reference）を併せて伝える。（事前モードでは）フォーム入力値をJSONで併送
+2-2. roleの指示: 「role=targetの帳票を照合の基準とし、role=referenceの書類と突き合わせよ。targetが複数ファイルの場合は1件の申告を構成する帳票群として扱い、別申告として分割しないこと」。事後モードはtarget＝登録帳票、reference＝関係書類。事前モードはフォーム入力＝target相当、添付＝reference
+3. 判定手順を指示: ①各書類の種別判定 → ②キー項目の抽出 → ③申告側（target）との照合 → ④資料間照合 → ⑤資料内の計算検算 → ⑥findings生成
 4. 「確認できない項目は推測せずunverifiedに入れる」を強い制約として明記（ハルシネーション第1層）
 4-2. 「判読確信度が低い文字は推測せず、候補と確信度を添えてclarificationsに入れる」を強い制約として明記（第2層）
 4-3. 聞き返しループは別エンドポイントのマルチターン会話として実装。人間の回答を文脈・検算と突き合わせ、不整合なら聞き返す（第3層）
@@ -220,8 +225,11 @@ interface SourceRef {
   location: string;
 }
 
+type DocRole = "target" | "reference";
+
 interface DetectedDocument {
   doc_id: string;
+  role: DocRole;
   detected_type: string;
   detected_type_label: string;
   confidence: number;
