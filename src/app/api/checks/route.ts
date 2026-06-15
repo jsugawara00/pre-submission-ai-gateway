@@ -37,13 +37,41 @@ export async function POST(request: Request): Promise<Response> {
     const form = await request.formData();
 
     const mode = form.get("mode") === "pre" ? "pre" : "post";
-    const files = form.getAll("files").filter((f): f is File => f instanceof File);
 
-    if (files.length === 0) {
+    // 入力ファイルを役割（target/reference）付きで受け取る（改訂1: 事後モードの2ゾーン化）。
+    const isFile = (f: FormDataEntryValue): f is File => f instanceof File;
+    const targetFiles = form.getAll("target_files").filter(isFile);
+    const referenceFiles = form.getAll("reference_files").filter(isFile);
+    const legacyFiles = form.getAll("files").filter(isFile); // 旧形式（単一ゾーン）との後方互換
+
+    type RoledFile = { file: File; role: "target" | "reference" };
+    let roledFiles: RoledFile[];
+    if (mode === "pre") {
+      // 事前モード: 申告側はフォーム入力。添付PDFはすべて reference として扱う。
+      roledFiles = [...targetFiles, ...referenceFiles, ...legacyFiles].map((file) => ({
+        file,
+        role: "reference" as const,
+      }));
+    } else if (targetFiles.length > 0 || referenceFiles.length > 0) {
+      // 事後モード・新形式（2ゾーン）: チェック対象=target / 関係書類=reference。
+      roledFiles = [
+        ...targetFiles.map((file) => ({ file, role: "target" as const })),
+        ...referenceFiles.map((file) => ({ file, role: "reference" as const })),
+      ];
+    } else {
+      // 事後モード・旧形式（files のみ）: 暫定で target 扱い。
+      roledFiles = legacyFiles.map((file) => ({ file, role: "target" as const }));
+    }
+
+    if (roledFiles.length === 0) {
       return NextResponse.json({ error: "PDFファイルを1つ以上添付してください。" }, { status: 400 });
     }
-    if (files.length > MAX_FILES) {
+    if (roledFiles.length > MAX_FILES) {
       return NextResponse.json({ error: `添付できるファイルは最大${MAX_FILES}件です。` }, { status: 400 });
+    }
+    // 合意事項: target 0件でも処理は止めず警告のみ（reference だけで照合する）。
+    if (mode === "post" && !roledFiles.some((rf) => rf.role === "target")) {
+      console.warn("[checks] 事後モードでチェック対象(target)が0件です。関係書類のみで照合します。");
     }
 
     // 事前モードのフォーム入力（任意。Phase 2で本格対応）
@@ -59,7 +87,7 @@ export async function POST(request: Request): Promise<Response> {
 
     // 先に全ファイルを読み込み・検証（1つでもNGなら何も保存せず中断）
     const buffers: Buffer[] = [];
-    for (const file of files) {
+    for (const { file } of roledFiles) {
       if (file.size > MAX_PDF_BYTES) {
         return NextResponse.json({ error: "ファイルサイズが上限（20MB）を超えています。" }, { status: 400 });
       }
@@ -79,18 +107,20 @@ export async function POST(request: Request): Promise<Response> {
     const pdfInputs: PdfInput[] = [];
     for (let i = 0; i < buffers.length; i++) {
       const buffer = buffers[i];
+      const { file, role } = roledFiles[i];
       const stored = await savePdfEncrypted(buffer, applicationId, i);
       const docId = `d${i + 1}`;
       documents.push({
         doc_id: docId,
-        original_name: files[i].name,
+        original_name: file.name,
         stored_path: stored.storedPath,
         sha256: stored.sha256,
         size_bytes: buffer.length,
         mime: "application/pdf",
+        role,
       });
-      // 同じ docId をエンジンにも渡し、AI出力の doc_id をストレージ側と一致させる。
-      pdfInputs.push({ base64: buffer.toString("base64"), filename: files[i].name, docId });
+      // 同じ docId と role をエンジンにも渡し、AI出力の doc_id・roleをストレージ側と一致させる。
+      pdfInputs.push({ base64: buffer.toString("base64"), filename: file.name, docId, role });
     }
     await updateApplicationDocuments(applicationId, documents);
     await insertAuditLog({

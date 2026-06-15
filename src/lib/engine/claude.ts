@@ -33,6 +33,11 @@ export interface PdfInput {
    * 一致させるために使う。省略時は渡された順に d1, d2, … を自動採番する。
    */
   docId?: string;
+  /**
+   * この書類の役割（改訂1）。target=チェック対象（申告側の基準）／reference=関係書類。
+   * title に「（チェック対象）／（関係書類）」として埋め込み、AIに照合の基準を伝える。
+   */
+  role?: "target" | "reference";
 }
 
 export interface ClaudeCallInput {
@@ -49,16 +54,22 @@ export interface ClaudeCallResult {
 }
 
 export async function callClaude(input: ClaudeCallInput): Promise<ClaudeCallResult> {
-  const content: Anthropic.ContentBlockParam[] = input.pdfs.map((pdf, i) => ({
-    type: "document",
-    // title に doc_id を入れることで、AIが各PDFを d1, d2, … として参照できる。
-    title: pdf.docId ?? `d${i + 1}`,
-    source: {
-      type: "base64",
-      media_type: "application/pdf",
-      data: pdf.base64,
-    },
-  }));
+  const content: Anthropic.ContentBlockParam[] = input.pdfs.map((pdf, i) => {
+    const docId = pdf.docId ?? `d${i + 1}`;
+    // title に doc_id と役割を入れ、AIが各PDFを d1, d2, … として参照でき、
+    // かつ照合の基準（チェック対象/関係書類）を把握できるようにする。
+    const roleLabel =
+      pdf.role === "target" ? "チェック対象" : pdf.role === "reference" ? "関係書類" : null;
+    return {
+      type: "document" as const,
+      title: roleLabel ? `${docId}（${roleLabel}）` : docId,
+      source: {
+        type: "base64" as const,
+        media_type: "application/pdf" as const,
+        data: pdf.base64,
+      },
+    };
+  });
   content.push({ type: "text", text: input.userText });
 
   const response = await getClient().messages.create({

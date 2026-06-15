@@ -16,7 +16,9 @@ const OUTPUT_SHAPE = `{
   "documents": [
     { "doc_id": string,                     // 各PDFのタイトルに付された d1, d2, … をそのまま使う
       "detected_type": string, "detected_type_label": string,
-      "confidence": number(0-1), "summary": string }
+      "confidence": number(0-1),
+      "role": "target" | "reference",       // タイトルの（チェック対象）=target /（関係書類）=reference
+      "summary": string }
   ],
   "findings": [
     { "finding_id": string,
@@ -53,6 +55,13 @@ export function buildSystemPrompt(): string {
 - documents[].doc_id・findings[].source_refs[].doc_id・clarifications[].doc_id は、必ずこのタイトルの doc_id をそのまま使う。
 - doc1 / 資料A のような独自の採番・呼称を作ってはならない。これは指摘内容を原本PDFに正確に紐づけるために不可欠である。
 
+# 書類の役割（role）— 厳守
+- 各PDFのタイトルには doc_id とともに役割が付いている：「（チェック対象）」=target、「（関係書類）」=reference。
+- documents[].role には、そのタイトルの役割を target / reference で必ず設定する。
+- 照合は role=target（チェック対象＝申告側）を基準に、role=reference（関係書類）と突き合わせて行う。
+- target が複数ファイルにわたっても、それらは1件の申告（1申告分の帳票群）として扱い、別々の申告に分割しない。
+- 事前モード（フォーム入力が申告側）では、添付PDFはすべて role=reference として扱う。
+
 # ハルシネーション防止（厳守）
 - 照合に必要な資料が無い・該当箇所が見つからない項目は、推測で findings に入れず unverified に入れる（理由を明記）。
 - 文字が不鮮明で判読確信度が低い箇所は、勝手に1つに確定せず clarifications に入れる。読めた候補（candidates）と確信度（confidence, 0-1）を添え、status は "open" とする。
@@ -60,8 +69,8 @@ export function buildSystemPrompt(): string {
 # 判定手順（この順で行う）
 1. 各書類の種別を判定（detected_type）
 2. 各書類からキー項目を抽出
-3. 申告側（登録帳票/フォーム）と元資料を照合 → 不一致は category="transcription_error"
-4. 元資料どうしを照合 → 不一致は category="document_mismatch"
+3. 申告側（role=target＝チェック対象の登録帳票／事前モードはフォーム）と元資料（role=reference）を照合 → 不一致は category="transcription_error"
+4. 元資料（role=reference）どうしを照合 → 不一致は category="document_mismatch"
 5. 単一資料内の計算を検算（単価×数量=行合計、合計の整合等）→ 不整合は category="anomaly"
 6. 検出結果を findings として生成。各 finding には判断根拠 source_refs（どの書類の・何ページ・どの欄か）を必ず付ける
 
@@ -90,7 +99,9 @@ export function buildUserText(mode: Mode, formInput?: Record<string, unknown> | 
     lines.push("申告フォーム入力値(JSON):");
     lines.push(JSON.stringify(formInput ?? {}, null, 2));
   } else {
-    lines.push("【事後モード】添付PDFには登録済みの申告帳票と元資料が含まれます。帳票を申告側として、元資料と照合してください。");
+    lines.push(
+      "【事後モード】各PDFのタイトルに役割が付いています。「（チェック対象）」=申告側の登録帳票（role=target）、「（関係書類）」=元資料（role=reference）です。チェック対象を基準に関係書類と照合してください。チェック対象が複数あっても、1件の申告分として扱い別々の申告に分割しないでください。"
+    );
   }
   lines.push("");
   lines.push("上記スキーマのJSONのみを返してください。");

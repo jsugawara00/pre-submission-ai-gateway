@@ -94,7 +94,8 @@ export default function PreCheckPage() {
       const body = new FormData();
       body.append("mode", "pre");
       body.append("form_input", JSON.stringify(formInput));
-      for (const f of files) body.append("files", f);
+      // 事前モードの申告側はフォーム入力（target相当）。添付PDFはすべて関係書類=reference として送る。
+      for (const f of files) body.append("reference_files", f);
 
       const res = await fetch("/api/checks", { method: "POST", body });
       const data = await res.json().catch(() => ({}));

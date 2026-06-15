@@ -34,10 +34,11 @@ function loadEnvLocal() {
   }
 }
 
-function pdf(name: string) {
+function pdf(name: string, role: "target" | "reference") {
   return {
     base64: readFileSync(join(projectRoot, "fixtures", name)).toString("base64"),
     filename: name,
+    role,
   };
 }
 
@@ -48,7 +49,8 @@ async function main() {
   const out = await runCheck({
     checkId: "chk_smoke_0001",
     mode: "post",
-    pdfs: [pdf("declaration.pdf"), pdf("invoice.pdf"), pdf("packing_list.pdf")],
+    // declaration=チェック対象(target)、invoice/packing=関係書類(reference)
+    pdfs: [pdf("declaration.pdf", "target"), pdf("invoice.pdf", "reference"), pdf("packing_list.pdf", "reference")],
   });
 
   const r = out.result;

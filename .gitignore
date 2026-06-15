@@ -46,3 +46,6 @@ next-env.d.ts
 
 # 暗号化済みアップロードPDFの保存先（gitには含めない）
 /storage
+
+# 開発サーバーの一時ログ
+dev.log

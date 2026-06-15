@@ -17,6 +17,7 @@ export interface DocumentMeta {
   sha256: string;
   size_bytes: number;
   mime: string;
+  role: "target" | "reference"; // 改訂1: チェック対象 / 関係書類
 }
 
 export interface ApplicationRow {

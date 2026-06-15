@@ -44,6 +44,7 @@ async function main() {
         detected_type: "declaration_form",
         detected_type_label: "輸入申告登録帳票",
         confidence: 0.97,
+        role: "target",
         summary: "輸入申告（IDA）。グロス重量 3,420 KG、貨物個数 125 CT、インボイス価格 USD 124,500。",
       },
       {
@@ -51,6 +52,7 @@ async function main() {
         detected_type: "packing_list",
         detected_type_label: "パッキングリスト",
         confidence: 0.9,
+        role: "reference",
         summary: "INV-4471。総梱包 125 CT。グロス重量はFAX由来で末尾の数字が不鮮明。",
       },
     ],

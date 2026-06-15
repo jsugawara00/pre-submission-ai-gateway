@@ -1,5 +1,5 @@
 .container {
-  max-width: 720px;
+  max-width: 860px;
   margin: 0 auto;
   padding: 40px 20px 64px;
 }
@@ -20,6 +20,46 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
+}
+.zones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 640px) {
+  .zones {
+    grid-template-columns: 1fr;
+  }
+}
+.zone {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--background);
+}
+.zoneHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.zoneBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.badgeTarget {
+  background: #e7f0ff;
+  color: var(--primary-dark);
+}
+.badgeReference {
+  background: #eef2f7;
+  color: var(--muted);
+}
+.zoneTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 .dropzone {
   border: 2px dashed var(--border);

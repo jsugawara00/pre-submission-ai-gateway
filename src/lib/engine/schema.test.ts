@@ -144,4 +144,33 @@ describe("checkResultSchema", () => {
     const result = checkResultSchema.safeParse(invalid);
     expect(result.success).toBe(false);
   });
+
+  // --- role（改訂1） ---
+
+  it("documents に role が無くても通り、default で reference になる（後方互換）", () => {
+    const result = checkResultSchema.safeParse(designExample);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.documents.every((d) => d.role === "reference")).toBe(true);
+    }
+  });
+
+  it("documents に role=target / reference を明示した場合はその値を保持する", () => {
+    const withRole = cloneAsAny();
+    withRole.documents[0].role = "target";
+    withRole.documents[1].role = "reference";
+    const result = checkResultSchema.safeParse(withRole);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.documents[0].role).toBe("target");
+      expect(result.data.documents[1].role).toBe("reference");
+    }
+  });
+
+  it("role に未定義の値（target/reference 以外）を拒否する", () => {
+    const invalid = cloneAsAny();
+    invalid.documents[0].role = "primary";
+    const result = checkResultSchema.safeParse(invalid);
+    expect(result.success).toBe(false);
+  });
 });

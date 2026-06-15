@@ -82,6 +82,9 @@ export const detectedDocumentSchema = z.object({
   detected_type: z.string(),
   detected_type_label: z.string(),
   confidence: z.number().min(0).max(1),
+  // role（改訂1）: 照合の基準＝target（チェック対象/申告側）か reference（関係書類）か。
+  // 既存DBデータ（role無し）との後方互換のため default("reference") を付ける。
+  role: z.enum(["target", "reference"]).default("reference"),
   summary: z.string(),
 });
 
