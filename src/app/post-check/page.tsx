@@ -9,6 +9,7 @@
 import { useRef, useState, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ScanningIndicator from "@/components/ScanningIndicator/ScanningIndicator";
 import styles from "./post-check.module.css";
 
 const MAX_MB = 20;
@@ -177,7 +178,7 @@ export default function PostCheckPage() {
 
         {error && <p className={styles.error}>{error}</p>}
         {submitting && (
-          <p className={styles.progress}>照合中です…（AIが書類を読み取っています。数十秒かかる場合があります）</p>
+          <ScanningIndicator label="照合中" note="AIが書類を読み取っています。数十秒かかる場合があります。" />
         )}
 
         <button type="button" className={styles.submit} onClick={handleSubmit} disabled={submitting}>

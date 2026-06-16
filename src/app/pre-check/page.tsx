@@ -10,6 +10,7 @@ import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { CheckResult, Finding, Verdict } from "@/lib/engine/schema";
 import { RiskBadge } from "@/components/report/RiskBadge";
+import ScanningIndicator from "@/components/ScanningIndicator/ScanningIndicator";
 import { CORE_FIELDS, LINE_FIELDS, LINE_ITEM_COUNT, lineKey } from "./fields";
 import styles from "./pre-check.module.css";
 
@@ -241,7 +242,7 @@ export default function PreCheckPage() {
       )}
 
       {error && <p className={styles.error}>{error}</p>}
-      {submitting && <p className={styles.progress}>照合中です…（AIが資料を読み取っています。数十秒かかる場合があります）</p>}
+      {submitting && <ScanningIndicator label="照合中" note="AIが資料を読み取っています。数十秒かかる場合があります。" />}
 
       <button type="button" className={styles.submit} onClick={handleSubmit} disabled={submitting}>
         {submitting ? "照合中…" : result ? "再照合する" : "照合する"}
