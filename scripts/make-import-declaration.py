@@ -90,10 +90,12 @@ def build():
     elems.append(Spacer(1, 2*mm))
 
     # 仕入書・価格
+    # 「保険金額」欄に入れるのは課税価格に算入する“実際の保険料(Premium)”であり、
+    # 保険証券の Insured Amount（填補額 25,685）ではない。元資料(保険証券)の Premium と一致させる。
     price = [
         [P("仕入書番号"), P("INV-2026-0418"), P("価格条件（建値）"), P("FOB")],
         [P("インボイス通貨"), P("USD"), P("インボイス価格"), P("22,500.00")],
-        [P("運賃"), P("USD 850.00"), P("保険金額"), P("USD 25,685.00")],
+        [P("運賃"), P("USD 850.00"), P("保険金額（保険料）"), P("USD 64.21")],
     ]
     elems.append(grid(price, [W*0.13, W*0.37, P_w := W*0.18, W*0.32], label_cols=(0, 2)))
     elems.append(Spacer(1, 3*mm))
