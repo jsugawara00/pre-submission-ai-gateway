@@ -144,7 +144,7 @@
 .suggestion {
   font-size: 0.9rem;
   color: var(--muted);
-  background: #f1f4f8;
+  background: var(--panel);
   border-radius: 8px;
   padding: 8px 12px;
 }

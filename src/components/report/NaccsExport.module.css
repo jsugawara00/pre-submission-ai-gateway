@@ -17,7 +17,7 @@
 .button {
   border: 1px solid var(--primary);
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 0.9rem;
   font-weight: 600;
   padding: 8px 16px;

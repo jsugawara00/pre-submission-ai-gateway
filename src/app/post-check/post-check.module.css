@@ -21,7 +21,7 @@
   border: 1px solid var(--border);
   border-left: 3px solid var(--primary);
   border-radius: 8px;
-  background: #f3f7ff;
+  background: var(--panel-accent);
   color: var(--muted);
   font-size: 0.88rem;
   line-height: 1.6;
@@ -61,11 +61,11 @@
   border-radius: 999px;
 }
 .badgeTarget {
-  background: #e7f0ff;
-  color: var(--primary-dark);
+  background: var(--panel-accent);
+  color: var(--primary);
 }
 .badgeReference {
-  background: #eef2f7;
+  background: var(--panel);
   color: var(--muted);
 }
 .zoneTitle {
@@ -82,7 +82,7 @@
 }
 .dropzone:hover {
   border-color: var(--primary);
-  background: #f3f7ff;
+  background: var(--panel-accent);
 }
 .dropzoneHint {
   color: var(--muted);
@@ -125,7 +125,7 @@
   border: none;
   border-radius: 8px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;

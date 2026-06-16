@@ -1,23 +1,32 @@
 /* デザイントークン＋最小限のベーススタイル（UIライブラリは使わない方針） */
 :root {
-  --background: #f6f7f9;
-  --surface: #ffffff;
-  --foreground: #1b1f24;
-  --muted: #5b6470;
-  --border: #e2e6ea;
-  --primary: #1f6feb;
-  --primary-dark: #1858c4;
+  /* デザインB案「ライトテーブル照合」のダーク基調。全ページ共通トークン。 */
+  --background: #0e1b22;
+  --surface: #15252e;
+  --foreground: #dce7ea;
+  --muted: #93a7ac;
+  --border: rgba(120, 160, 170, 0.16);
+  --primary: #36d6c2;
+  --primary-dark: #2bbfae;
+  --on-primary: #06231f; /* テール上に乗せる暗色テキスト */
 
-  /* リスク／判定の色 */
-  --risk-high: #d12f2f;
-  --risk-high-bg: #fdecec;
-  --risk-medium: #b8730a;
-  --risk-medium-bg: #fdf3e2;
-  --risk-low: #2f7d4f;
-  --risk-low-bg: #e9f6ee;
-  --verdict-blocked: #d12f2f;
-  --verdict-warning: #b8730a;
-  --verdict-pass: #2f7d4f;
+  /* パネル背景（淡いハイライト面の置き換え） */
+  --panel: rgba(255, 255, 255, 0.04);
+  --panel-accent: rgba(54, 214, 194, 0.1);
+  --code-bg: rgba(255, 255, 255, 0.06);
+
+  /* リスク色：暗背景に乗る「文字色」用に明るめ＋背景は暗いティント */
+  --risk-high: #ff6b7e;
+  --risk-high-bg: rgba(255, 92, 122, 0.13);
+  --risk-medium: #f0ad4e;
+  --risk-medium-bg: rgba(240, 173, 78, 0.14);
+  --risk-low: #46cd8e;
+  --risk-low-bg: rgba(70, 205, 142, 0.13);
+
+  /* 判定ピル色：白文字が乗る「背景色」用に濃いめ */
+  --verdict-blocked: #cf3a52;
+  --verdict-warning: #b87413;
+  --verdict-pass: #2a8e5b;
 }
 
 * {
@@ -54,4 +63,17 @@ a {
 }
 a:hover {
   text-decoration: underline;
+}
+
+/* フォーム要素：ダーク基調で入力文字が消えないよう明示する */
+input,
+textarea,
+select {
+  font: inherit;
+  color: var(--foreground);
+  background: var(--panel);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
 }

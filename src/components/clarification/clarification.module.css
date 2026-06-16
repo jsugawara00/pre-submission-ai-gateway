@@ -34,7 +34,7 @@
   padding: 1px 8px;
   margin: 2px 6px 2px 0;
   cursor: pointer;
-  background: #f6f8fb;
+  background: var(--panel);
 }
 .candidate:hover {
   border-color: var(--primary);
@@ -53,11 +53,11 @@
   max-width: 90%;
 }
 .msgAi {
-  background: #eef2f7;
+  background: var(--panel);
   align-self: flex-start;
 }
 .msgHuman {
-  background: #e7f0ff;
+  background: var(--panel-accent);
   align-self: flex-end;
 }
 .inputRow {
@@ -76,7 +76,7 @@
   border: none;
   border-radius: 8px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-weight: 700;
   padding: 8px 16px;
   cursor: pointer;

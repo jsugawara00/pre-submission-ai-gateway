@@ -89,7 +89,7 @@
 }
 .dropzone:hover {
   border-color: var(--primary);
-  background: #f3f7ff;
+  background: var(--panel-accent);
 }
 .dropHint {
   color: var(--muted);
@@ -128,7 +128,7 @@
   border: none;
   border-radius: 8px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
@@ -212,7 +212,8 @@
   cursor: pointer;
 }
 .register:disabled {
-  background: #b9c0c8;
+  background: #33454d;
+  color: var(--muted);
   cursor: not-allowed;
 }
 .registerNote {
