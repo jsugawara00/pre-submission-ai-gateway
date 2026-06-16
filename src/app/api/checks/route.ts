@@ -15,7 +15,7 @@
 
 import { NextResponse } from "next/server";
 import { validatePdf, savePdfEncrypted, MAX_PDF_BYTES } from "@/lib/storage";
-import { runCheck, EngineError, type PdfInput } from "@/lib/engine";
+import { runCheck, EngineError, EngineUnavailableError, type PdfInput } from "@/lib/engine";
 import {
   createApplication,
   updateApplicationDocuments,
@@ -150,6 +150,8 @@ export async function POST(request: Request): Promise<Response> {
 
     return NextResponse.json({ checkId, verdict: result.summary.verdict }, { status: 201 });
   } catch (err) {
+    // サーバーログには原因を残す（レスポンスには露出させない）。運用・デバッグのため。
+    console.error("[checks] 照合処理エラー:", err);
     if (applicationId) {
       // 失敗を記録（ベストエフォート。失敗時の後始末でさらに例外が出ても握り潰す）
       try {
@@ -158,6 +160,13 @@ export async function POST(request: Request): Promise<Response> {
       } catch {
         /* noop */
       }
+    }
+    if (err instanceof EngineUnavailableError) {
+      // Claude API の一時的障害（過負荷・タイムアウト等）。リトライ後も復旧せず。
+      return NextResponse.json(
+        { error: "照合サービスが混み合っているか接続できませんでした。時間をおいて再度お試しください。" },
+        { status: 503 }
+      );
     }
     if (err instanceof EngineError) {
       return NextResponse.json(

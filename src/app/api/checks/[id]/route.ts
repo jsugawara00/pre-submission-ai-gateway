@@ -26,7 +26,8 @@ export async function GET(
     });
 
     return NextResponse.json(row.result_json);
-  } catch {
+  } catch (err) {
+    console.error("[checks/[id]] 結果取得エラー:", err);
     return NextResponse.json({ error: "結果の取得中にエラーが発生しました。" }, { status: 500 });
   }
 }

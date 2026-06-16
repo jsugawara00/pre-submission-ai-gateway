@@ -2,9 +2,12 @@
  * 照合エンジンのエントリポイント。
  * 流れ: プロンプト組み立て → Claude API → JSON解析 → zod検証 →（失敗なら1回だけリトライ）→ verdict確定。
  *
- * 失敗形式は勝手に緩めない。zod検証に2回失敗したら EngineError を投げる（CLAUDE.md 第5章）。
+ * 失敗形式は勝手に緩めない。zod検証に最終的に失敗したら EngineError を投げる（CLAUDE.md 第5章）。
+ * Claude API 呼び出しの一時的障害（過負荷・タイムアウト・接続断など）は数回リトライし、
+ * それでも復旧しなければ EngineUnavailableError を投げる（route 側で 503 を返す）。
  */
 
+import Anthropic from "@anthropic-ai/sdk";
 import { checkResultSchema, type CheckResult, type Mode } from "./schema";
 import { buildSystemPrompt, buildUserText, RETRY_INSTRUCTION } from "./prompt";
 import { callClaude, type PdfInput } from "./claude";
@@ -31,13 +34,35 @@ export interface RunCheckOutput {
   model: string;
 }
 
-/** zod検証に最終的に失敗した場合のエラー。 */
+/** zod検証に最終的に失敗した場合のエラー（出力形式の不正）。 */
 export class EngineError extends Error {
   constructor(message: string, readonly rawResponse: string) {
     super(message);
     this.name = "EngineError";
   }
 }
+
+/** Claude API が一時的に利用できなかった場合のエラー（過負荷・タイムアウト・接続断など）。 */
+export class EngineUnavailableError extends Error {
+  constructor(message: string, readonly cause?: unknown) {
+    super(message);
+    this.name = "EngineUnavailableError";
+  }
+}
+
+/** API呼び出しの例外がリトライで回復しうる一時的なものか判定する。 */
+function isRetryableApiError(e: unknown): boolean {
+  // 接続断・タイムアウトなどネットワーク系
+  if (e instanceof Anthropic.APIConnectionError) return true;
+  // HTTPステータス系（429=レート制限 / 408,409=競合・タイムアウト / 5xx=サーバー側 / 529=過負荷）
+  if (e instanceof Anthropic.APIError) {
+    const s = (e as { status?: number }).status;
+    return s === 408 || s === 409 || s === 429 || (typeof s === "number" && s >= 500);
+  }
+  return false;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** コードフェンスや前後の余分なテキストを除去してJSON本体を取り出す（防御的処理）。 */
 function extractJson(text: string): string {
@@ -66,12 +91,30 @@ export async function runCheck(input: RunCheckInput): Promise<RunCheckOutput> {
   const system = buildSystemPrompt();
   const baseUserText = buildUserText(input.mode, input.formInput);
 
+  const MAX_ATTEMPTS = 3;
   let lastRaw = "";
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const userText = attempt === 0 ? baseUserText : baseUserText + RETRY_INSTRUCTION;
-    const { text, model } = await callClaude({ system, userText, pdfs: input.pdfs });
-    lastRaw = text;
+  let lastApiError: unknown = null;
+  // 直前の試行が「JSON解析/スキーマ検証の失敗」だったときだけ、出力厳守の追記を付ける。
+  let needRetryInstruction = false;
 
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const userText = needRetryInstruction ? baseUserText + RETRY_INSTRUCTION : baseUserText;
+
+    let text: string;
+    let model: string;
+    try {
+      ({ text, model } = await callClaude({ system, userText, pdfs: input.pdfs }));
+    } catch (e) {
+      // API一時障害はバックオフして再試行。回復不能ならサービス不可として投げる。
+      lastApiError = e;
+      if (isRetryableApiError(e) && attempt < MAX_ATTEMPTS - 1) {
+        await sleep(800 * (attempt + 1));
+        continue;
+      }
+      throw new EngineUnavailableError("照合サービスに接続できませんでした。", e);
+    }
+
+    lastRaw = text;
     const parsed = tryParse(text);
     if (parsed.ok) {
       const validated = checkResultSchema.safeParse(parsed.value);
@@ -85,7 +128,11 @@ export async function runCheck(input: RunCheckInput): Promise<RunCheckOutput> {
         return { result: finalized, rawResponse: text, model };
       }
     }
+    // 解析または検証に失敗 → 次の試行で出力厳守を強める
+    needRetryInstruction = true;
   }
 
-  throw new EngineError("照合結果の形式が不正です（スキーマ検証に2回失敗）。", lastRaw);
+  // ここに来るのは「APIは応答したが形式が最後まで不正だった」場合。
+  void lastApiError;
+  throw new EngineError("照合結果の形式が不正です（スキーマ検証に失敗）。", lastRaw);
 }
