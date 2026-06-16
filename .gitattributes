@@ -1,0 +1,7 @@
+# バイナリファイルは改行変換(LF↔CRLF)の対象外にする（破損防止）。
+*.pdf  binary
+*.xlsx binary
+*.docx binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
