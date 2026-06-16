@@ -6,6 +6,7 @@
   --foreground: #dce7ea;
   --muted: #93a7ac;
   --border: rgba(120, 160, 170, 0.16);
+  --field-border: rgba(120, 160, 170, 0.34); /* 入力欄用：ヘアラインより一段濃い */
   --primary: #36d6c2;
   --primary-dark: #2bbfae;
   --on-primary: #06231f; /* テール上に乗せる暗色テキスト */

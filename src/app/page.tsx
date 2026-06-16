@@ -7,7 +7,7 @@ export default function Home() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.heroText}>
-          <p className={styles.eyebrow}>申請前AI検問システム</p>
+          <p className={styles.eyebrow}>申請前AI検問所</p>
           <h1 className={styles.title}>
             食い違いは、
             <br />
