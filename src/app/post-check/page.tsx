@@ -31,7 +31,7 @@ export default function PostCheckPage() {
     const next = [...current];
     for (const f of Array.from(incoming)) {
       if (f.type && f.type !== "application/pdf") {
-        setError("PDFファイルのみ添付できます。");
+        setError(`「${f.name}」はPDFではないため追加できません。PDFファイルのみ添付できます。`);
         continue;
       }
       if (f.size > MAX_MB * 1024 * 1024) {

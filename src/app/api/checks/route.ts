@@ -89,12 +89,16 @@ export async function POST(request: Request): Promise<Response> {
     const buffers: Buffer[] = [];
     for (const { file } of roledFiles) {
       if (file.size > MAX_PDF_BYTES) {
-        return NextResponse.json({ error: "ファイルサイズが上限（20MB）を超えています。" }, { status: 400 });
+        return NextResponse.json(
+          { error: `「${file.name}」はファイルサイズが上限（20MB）を超えています。` },
+          { status: 400 }
+        );
       }
       const buffer = Buffer.from(await file.arrayBuffer());
       const v = validatePdf(buffer, file.type);
       if (!v.ok) {
-        return NextResponse.json({ error: v.reason }, { status: 400 });
+        // どのファイルが不正かユーザーが分かるようファイル名を添える
+        return NextResponse.json({ error: `「${file.name}」: ${v.reason}` }, { status: 400 });
       }
       buffers.push(buffer);
     }
