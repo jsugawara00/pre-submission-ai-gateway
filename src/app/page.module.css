@@ -1,62 +1,295 @@
-.container {
-  max-width: 820px;
+/* トップページ：デザインB案「ライトテーブル照合」。色トークンはこのページにスコープする
+   （レポートUI等の共通トークンを汚さない）。 */
+.page {
+  --table: #0e1b22;
+  --table2: #0a1419;
+  --paper: #fbfaf6;
+  --quiet: #3a4a52;
+  --glow: #36d6c2;
+  --warn: #e8a33d;
+  --bad: #ff5c7a;
+  --hair: rgba(120, 160, 170, 0.16);
+
+  min-height: 100vh;
+  padding: 0 28px 80px;
+  color: #dce7ea;
+  background:
+    radial-gradient(900px 600px at 18% 12%, #12313a 0%, transparent 55%),
+    linear-gradient(180deg, var(--table), var(--table2));
+}
+.page > section {
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 64px 20px;
+}
+
+/* ヒーロー */
+.hero {
+  display: grid;
+  grid-template-columns: 0.92fr 1.08fr;
+  gap: 48px;
+  align-items: center;
+  padding: 72px 0 36px;
+}
+.eyebrow {
+  font-family: var(--font-display), "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  font-size: clamp(17px, 2.2vw, 20px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #7fb3ab;
+  margin-bottom: 52px;
 }
 .title {
-  font-size: 2rem;
-  font-weight: 800;
+  font-family: var(--font-display), "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  font-weight: 700;
+  font-size: clamp(38px, 6vw, 68px);
+  line-height: 1.02;
   letter-spacing: -0.01em;
 }
-.lead {
-  margin: 12px 0 40px;
-  color: var(--muted);
-  font-size: 1.05rem;
+.title em {
+  font-style: normal;
+  color: var(--glow);
+  text-shadow: 0 0 26px rgba(54, 214, 194, 0.45);
 }
-.cards {
+.lead {
+  margin-top: 22px;
+  max-width: 34ch;
+  color: #a9bcc1;
+  font-size: 15px;
+  line-height: 1.85;
+}
+/* ライトテーブル（照合台） */
+.stage {
+  position: relative;
+  height: 380px;
+  border: 1px solid var(--hair);
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    radial-gradient(600px 300px at 50% 40%, rgba(54, 214, 194, 0.08), transparent 70%),
+    repeating-linear-gradient(90deg, transparent 0 33px, var(--hair) 33px 34px);
+}
+.scan {
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(54, 214, 194, 0.1), transparent);
+  animation: scan 4.5s linear infinite;
+}
+@keyframes scan {
+  to {
+    left: 130%;
+  }
+}
+
+.doc {
+  position: absolute;
+  width: 268px;
+  background: var(--paper);
+  color: #13202a;
+  border-radius: 9px;
+  padding: 16px 18px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+.docInv {
+  top: 40px;
+  left: 24px;
+  transform: rotate(-2.5deg);
+  z-index: 2;
+}
+.docPkl {
+  bottom: 40px;
+  right: 24px;
+  transform: rotate(2deg);
+  z-index: 2;
+}
+.docHead {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #7c8a90;
+  margin-bottom: 13px;
+}
+.docRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  padding: 7px 0;
+  border-bottom: 1px solid #ece9e0;
+}
+.docRow:last-child {
+  border-bottom: 0;
+}
+.lab {
+  color: #9aa4a8;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.val {
+  font-weight: 700;
+}
+.match {
+  color: var(--quiet);
+}
+.bad {
+  color: #c0203f;
+}
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 7px;
+  vertical-align: middle;
+}
+.dotQuiet {
+  background: var(--quiet);
+}
+.dotBad {
+  background: var(--bad);
+  box-shadow: 0 0 0 0 rgba(255, 92, 122, 0.6);
+  animation: pulse 1.6s ease-out infinite;
+}
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 92, 122, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgba(255, 92, 122, 0);
+  }
+}
+
+.trace {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+.traceLine {
+  fill: none;
+  stroke: var(--bad);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  filter: drop-shadow(0 0 6px rgba(255, 92, 122, 0.8));
+  animation: dash 1s linear infinite;
+}
+@keyframes dash {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+.traceTag {
+  position: absolute;
+  z-index: 4;
+  top: 178px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bad);
+  color: #2a0510;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 6px 11px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* モード選択（事後／事前を対等に提示） */
+.modes {
+  margin-top: 56px;
+}
+.modesHead {
+  max-width: 62ch;
+  margin-bottom: 22px;
+}
+.modesTitle {
+  font-family: var(--font-display), "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.modesSub {
+  margin-top: 10px;
+  color: #a9bcc1;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.modeGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 18px;
 }
-@media (max-width: 640px) {
-  .cards {
+.mode {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hair);
+  border-radius: 14px;
+  padding: 26px 24px;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.015);
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+.mode:hover {
+  text-decoration: none;
+  border-color: var(--glow);
+  background: rgba(54, 214, 194, 0.05);
+  transform: translateY(-2px);
+}
+.mode:focus-visible {
+  outline: 2px solid var(--glow);
+  outline-offset: 3px;
+}
+.modeKey {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--glow);
+}
+.modeTitle {
+  display: block;
+  margin-top: 11px;
+  font-weight: 700;
+  font-size: 17px;
+}
+.modeDesc {
+  margin-top: 9px;
+  color: #9fb2b7;
+  font-size: 13px;
+  line-height: 1.75;
+}
+.modeGo {
+  margin-top: 18px;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--glow);
+}
+
+@media (max-width: 820px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .stage {
+    height: 420px;
+  }
+  .modeGrid {
     grid-template-columns: 1fr;
   }
 }
-.card {
-  display: block;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  background: var(--surface);
-  color: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.card:hover {
-  text-decoration: none;
-  border-color: var(--primary);
-  box-shadow: 0 4px 16px rgba(31, 111, 235, 0.08);
-}
-.cardDisabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.cardTitle {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-.cardDesc {
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-.tag {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #eef2f7;
-  color: var(--muted);
-  margin-left: 8px;
+@media (prefers-reduced-motion: reduce) {
+  .scan,
+  .dotBad,
+  .traceLine {
+    animation: none;
+  }
 }
