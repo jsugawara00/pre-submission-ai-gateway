@@ -155,6 +155,10 @@ export default function PostCheckPage() {
         照合の<strong>基準となる申告帳票</strong>を「チェック対象」に、突き合わせる<strong>元資料</strong>を「関係書類」に分けて入れてください。AIがチェック対象を基準に転記ミスや資料間の矛盾を照合します。
       </p>
 
+      <p className={styles.channelNote}>
+        📥 <strong>取り込み元は問いません。</strong>メールの添付や複合機（scan to email）で受け取ったPDFも、いったん保存して以下の欄にドラッグ＆ドロップ、または欄をクリックして選択するだけで取り込めます。
+      </p>
+
       <div className={styles.card}>
         <div className={styles.zones}>
           {renderZone("target", targetFiles, targetInputRef, {
