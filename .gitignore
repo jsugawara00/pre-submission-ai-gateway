@@ -49,3 +49,6 @@ next-env.d.ts
 
 # 開発サーバーの一時ログ
 dev.log
+
+# 業務秘密事項（GitHubに含めない。ローカル限定）
+conceal.md
