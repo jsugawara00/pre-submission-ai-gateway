@@ -114,6 +114,46 @@
   margin-bottom: 14px;
   background: var(--surface);
 }
+
+/* リスク別の発光点滅（高=強め赤／中=弱め黄／低以下=なし）。
+   トップの「発光」言語をレポートでも共有する（線で結ぶ演出はトップ限定）。 */
+.glowHigh {
+  border-color: var(--risk-high);
+  animation: glowHigh 1.8s ease-in-out infinite;
+}
+@keyframes glowHigh {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(255, 107, 126, 0);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(255, 107, 126, 0.6);
+  }
+}
+.glowMedium {
+  border-color: var(--risk-medium);
+  animation: glowMedium 2.6s ease-in-out infinite;
+}
+@keyframes glowMedium {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(240, 173, 78, 0);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(240, 173, 78, 0.32);
+  }
+}
+/* アニメ無効環境では点滅を止め、発光を静止表示する */
+@media (prefers-reduced-motion: reduce) {
+  .glowHigh,
+  .glowMedium {
+    animation: none;
+  }
+  .glowHigh {
+    box-shadow: 0 0 12px rgba(255, 107, 126, 0.45);
+  }
+  .glowMedium {
+    box-shadow: 0 0 8px rgba(240, 173, 78, 0.28);
+  }
+}
 .cardHead {
   display: flex;
   align-items: center;

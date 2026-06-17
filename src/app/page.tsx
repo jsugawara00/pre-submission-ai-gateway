@@ -18,58 +18,47 @@ export default function Home() {
           </p>
         </div>
 
-        {/* 照合デモ（装飾／例示。読み上げ対象から除外） */}
+        {/* 照合レポート風サンプル（装飾／例示。読み上げ対象から除外） */}
         <div className={styles.stage} aria-hidden="true">
           <span className={styles.scan} />
 
-          <div className={`${styles.doc} ${styles.docInv}`}>
-            <div className={styles.docHead}>INVOICE</div>
-            <div className={styles.docRow}>
-              <span className={styles.lab}>B/L No.</span>
-              <span className={`${styles.val} ${styles.bad}`}>
-                ABC-1234567<span className={`${styles.dot} ${styles.dotBad}`} />
-              </span>
+          <div className={styles.reportCard}>
+            <div className={styles.reportHead}>
+              <span className={styles.reportTitle}>照合レポート</span>
+              <span className={styles.verdictPill}>申告不可</span>
             </div>
-            <div className={styles.docRow}>
-              <span className={styles.lab}>Total Qty</span>
-              <span className={`${styles.val} ${styles.match}`}>
-                1,200 PCS<span className={`${styles.dot} ${styles.dotQuiet}`} />
-              </span>
+
+            <div className={`${styles.finding} ${styles.fHigh}`}>
+              <span className={styles.fBadge}>高リスク</span>
+              <div className={styles.fBody}>
+                <span className={styles.fField}>インボイス価格</span>
+                <span className={styles.fVals}>
+                  <span className={styles.fBad}>¥225,000</span>
+                  <span className={styles.fArrow}>↔</span>$22,500
+                </span>
+              </div>
             </div>
-            <div className={styles.docRow}>
-              <span className={styles.lab}>Currency</span>
-              <span className={`${styles.val} ${styles.match}`}>
-                USD<span className={`${styles.dot} ${styles.dotQuiet}`} />
-              </span>
+
+            <div className={`${styles.finding} ${styles.fMedium}`}>
+              <span className={`${styles.fBadge} ${styles.fBadgeMed}`}>中リスク</span>
+              <div className={styles.fBody}>
+                <span className={styles.fField}>貨物個数</span>
+                <span className={styles.fVals}>
+                  100 CT<span className={styles.fArrow}>↔</span>100 cases
+                </span>
+              </div>
+            </div>
+
+            <div className={`${styles.finding} ${styles.fLow}`}>
+              <span className={`${styles.fBadge} ${styles.fBadgeLow}`}>低リスク</span>
+              <div className={styles.fBody}>
+                <span className={styles.fField}>仕出人名</span>
+                <span className={styles.fVals}>
+                  Saigon<span className={styles.fArrow}>↔</span>saigon
+                </span>
+              </div>
             </div>
           </div>
-
-          <div className={`${styles.doc} ${styles.docPkl}`}>
-            <div className={styles.docHead}>PACKING LIST</div>
-            <div className={styles.docRow}>
-              <span className={styles.lab}>B/L No.</span>
-              <span className={`${styles.val} ${styles.bad}`}>
-                ABC-1234561<span className={`${styles.dot} ${styles.dotBad}`} />
-              </span>
-            </div>
-            <div className={styles.docRow}>
-              <span className={styles.lab}>Total Qty</span>
-              <span className={`${styles.val} ${styles.match}`}>
-                1,200 PCS<span className={`${styles.dot} ${styles.dotQuiet}`} />
-              </span>
-            </div>
-            <div className={styles.docRow}>
-              <span className={styles.lab}>Net Weight</span>
-              <span className={`${styles.val} ${styles.match}`}>
-                980 KG<span className={`${styles.dot} ${styles.dotQuiet}`} />
-              </span>
-            </div>
-          </div>
-
-          <svg className={styles.trace} viewBox="0 0 600 380" preserveAspectRatio="none">
-            <path className={styles.traceLine} d="M 250 78 C 360 130, 240 250, 360 300" />
-          </svg>
-          <div className={styles.traceTag}>B/L No. 不一致 — 末尾 7 / 1</div>
         </div>
       </section>
 

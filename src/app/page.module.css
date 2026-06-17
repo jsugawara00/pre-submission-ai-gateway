@@ -83,122 +83,125 @@
   }
 }
 
-.doc {
+/* 照合レポート風サンプル（ヒーロー前面）。レポートの見た目に寄せ、リスク別に発光させる。 */
+.reportCard {
   position: absolute;
-  width: 268px;
-  background: var(--paper);
-  color: #13202a;
-  border-radius: 9px;
-  padding: 16px 18px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-}
-.docInv {
-  top: 40px;
-  left: 24px;
-  transform: rotate(-2.5deg);
-  z-index: 2;
-}
-.docPkl {
-  bottom: 40px;
-  right: 24px;
-  transform: rotate(2deg);
-  z-index: 2;
-}
-.docHead {
-  font-family: var(--font-mono), monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  color: #7c8a90;
-  margin-bottom: 13px;
-}
-.docRow {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
   display: flex;
+  flex-direction: column;
+  gap: 11px;
+  width: min(420px, 90%);
+  padding: 22px;
+  border: 1px solid #e7e3d8;
+  border-radius: 14px;
+  background: #fbfaf6;
+  box-shadow: 0 26px 64px rgba(0, 0, 0, 0.5);
+}
+.reportHead {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: baseline;
+  margin-bottom: 4px;
+}
+.reportTitle {
   font-family: var(--font-mono), monospace;
   font-size: 13px;
-  padding: 7px 0;
-  border-bottom: 1px solid #ece9e0;
-}
-.docRow:last-child {
-  border-bottom: 0;
-}
-.lab {
-  color: #9aa4a8;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-}
-.val {
   font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #16242c;
 }
-.match {
-  color: var(--quiet);
-}
-.bad {
-  color: #c0203f;
-}
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-left: 7px;
-  vertical-align: middle;
-}
-.dotQuiet {
-  background: var(--quiet);
-}
-.dotBad {
+.verdictPill {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
   background: var(--bad);
-  box-shadow: 0 0 0 0 rgba(255, 92, 122, 0.6);
-  animation: pulse 1.6s ease-out infinite;
+  padding: 4px 13px;
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgba(255, 92, 122, 0.5);
 }
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 92, 122, 0.55);
-  }
-  100% {
-    box-shadow: 0 0 0 14px rgba(255, 92, 122, 0);
-  }
+.finding {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid #ece9e0;
+  border-radius: 10px;
+  background: #ffffff;
+}
+.fBadge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  color: #d81a40;
+  background: rgba(255, 92, 122, 0.13);
+}
+.fBadgeMed {
+  color: #b3771c;
+  background: rgba(232, 163, 61, 0.16);
+}
+.fBadgeLow {
+  color: #2f9d6a;
+  background: rgba(70, 205, 142, 0.15);
+}
+.fBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.fField {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #13202a;
+}
+.fVals {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  color: #5a6b72;
+}
+.fArrow {
+  margin: 0 7px;
+  color: #9aa4a8;
+}
+.fBad {
+  color: #c0203f;
+  font-weight: 700;
 }
 
-.trace {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 3;
-  pointer-events: none;
+/* リスク別の発光（高=強め赤／中=弱め黄／低=なし） */
+.fHigh {
+  border-color: var(--bad);
+  animation: glowHigh 1.8s ease-in-out infinite;
 }
-.traceLine {
-  fill: none;
-  stroke: var(--bad);
-  stroke-width: 2;
-  stroke-dasharray: 6 5;
-  filter: drop-shadow(0 0 6px rgba(255, 92, 122, 0.8));
-  animation: dash 1s linear infinite;
-}
-@keyframes dash {
-  to {
-    stroke-dashoffset: -22;
+@keyframes glowHigh {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(255, 92, 122, 0);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(255, 92, 122, 0.55);
   }
 }
-.traceTag {
-  position: absolute;
-  z-index: 4;
-  top: 178px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bad);
-  color: #2a0510;
-  font-family: var(--font-mono), monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 6px 11px;
-  border-radius: 6px;
-  white-space: nowrap;
+.fMedium {
+  border-color: var(--warn);
+  animation: glowMedium 2.6s ease-in-out infinite;
+}
+@keyframes glowMedium {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(232, 163, 61, 0);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(232, 163, 61, 0.32);
+  }
+}
+.fLow {
+  /* 低リスクは発光なし（沈める） */
+  opacity: 0.78;
 }
 
 /* モード選択（事後／事前を対等に提示） */
@@ -296,8 +299,15 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .scan,
-  .dotBad,
-  .traceLine {
+  .fHigh,
+  .fMedium {
     animation: none;
+  }
+  /* 点滅を止め、発光を静止表示する */
+  .fHigh {
+    box-shadow: 0 0 12px rgba(255, 92, 122, 0.4);
+  }
+  .fMedium {
+    box-shadow: 0 0 8px rgba(232, 163, 61, 0.28);
   }
 }

@@ -11,8 +11,11 @@ const CATEGORY_LABEL: Record<Category, string> = {
 
 export function FindingCard({ finding }: { finding: Finding }) {
   const hasValues = finding.declared_value !== null || finding.source_value !== null;
+  // リスク別の発光（高=強め／中=弱め／低以下=なし）。トップの「発光」言語をレポートにも適用。
+  const glow =
+    finding.risk === "high" ? styles.glowHigh : finding.risk === "medium" ? styles.glowMedium : "";
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${glow}`}>
       <div className={styles.cardHead}>
         <RiskBadge risk={finding.risk} />
         <span className={styles.cardTitle}>{finding.field_label}</span>
