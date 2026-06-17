@@ -8,7 +8,24 @@
  *  - 判定手順 ①書類種別判定→②キー項目抽出→③申告側と照合→④資料間照合→⑤資料内検算→⑥findings生成
  */
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { DETECTED_TYPES, KNOWN_FIELD_KEYS, type Mode } from "./schema";
+
+/**
+ * 照合精度ルール（rulebook.md）をプロジェクトルートから読み込む。
+ * rulebook は業務ノウハウ＝守秘のため git 管理外（.gitignore で除外）。
+ * 存在しない・読めない場合は注入をスキップする（ルール無し＝AIの自由判断のみ）。
+ */
+function loadRulebook(): string {
+  try {
+    const text = readFileSync(join(process.cwd(), "rulebook.md"), "utf8").trim();
+    return text.length > 0 ? text : "";
+  } catch {
+    return "";
+  }
+}
 
 const OUTPUT_SHAPE = `{
   "check_id": string,                       // サーバーが付与するため空文字でよい
@@ -44,6 +61,16 @@ const OUTPUT_SHAPE = `{
 
 /** 照合エンジンのシステムプロンプトを組み立てる。 */
 export function buildSystemPrompt(): string {
+  const rulebook = loadRulebook();
+  const rulebookSection = rulebook
+    ? `
+
+# 照合精度の補足ルール（厳守）
+以下は本業務の照合精度を保つための補足ルールです。上記の判定手順・ハルシネーション防止を土台としつつ、以下を必ず反映してください。
+
+${rulebook}`
+    : "";
+
   return `あなたは輸入申告の書類照合を行う検査エンジンです。アップロードされたPDF（申告登録帳票・インボイス・パッキングリスト・B/L等）を読み取り、転記ミス・資料間の矛盾・資料内の計算不整合を検出します。
 
 # 最重要の出力ルール
@@ -79,6 +106,10 @@ export function buildSystemPrompt(): string {
 - medium: 業務確認が必要だが直ちに重大ではない差異
 - low: 端数処理など軽微なもの
 
+# 説明文（reason / suggestion）の書き方
+- 簡潔に、断定形で言い切る（例:「〜です」「〜が必要です」）。回りくどい言い回しや二重説明を避ける。
+- 事実（何がどう違うか）を先に述べ、根拠は短く添える。1項目あたり1〜2文に収める。
+
 # verdict / summary について
 - verdict と summary の件数はサーバー側で再計算する。あなたは findings/unverified/clarifications を正確に出すことに集中し、summary は素直な集計値を入れてよい（headline は日本語で1文）。
 
@@ -86,6 +117,7 @@ export function buildSystemPrompt(): string {
 - detected_type は次のいずれか: ${DETECTED_TYPES.join(", ")}
 - field_key は機械用ID（英語snake_case）。代表的なキー: ${KNOWN_FIELD_KEYS.join(", ")}。欄ごとの明細項目は hs_code_1 / item_name_1 / quantity_1 / line_price_1 のように連番を付ける。該当キーが無い場合のみ null。
 - field_label は日本語の表示名。
+${rulebookSection}
 
 # 出力スキーマ
 ${OUTPUT_SHAPE}`;
