@@ -19,6 +19,9 @@ export default function Footer() {
           </a>
         </nav>
       </div>
+      <p className={styles.disclaimer}>
+        ※ 仕組み自体は業務を選びませんが、照合精度を支える専用ルールは一例の輸入申告業務向けです。輸入申告以外のチェックは正しい結果を保証できません（一定の精度でお試しいただけます）。
+      </p>
     </footer>
   );
 }

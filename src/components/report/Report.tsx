@@ -67,6 +67,10 @@ export function Report({ result, checkId }: { result: CheckResult; checkId: stri
 
       {/* NACCS（IDA）疑似サマリ出力（両モード共通。form_inputが無ければサーバーが出力対象なしを返す） */}
       <NaccsExport checkId={checkId} />
+
+      <p className={styles.disclaimer}>
+        ※ 照合精度を支える専用ルールは、ここで一例とする輸入申告業務向けに用意しています。輸入申告以外のチェックでは正しい結果を保証できませんが、仕組み自体は汎用のため一定の精度でお試しいただけます。
+      </p>
     </main>
   );
 }

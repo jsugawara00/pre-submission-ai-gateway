@@ -40,6 +40,17 @@
   border-radius: 0 8px 8px 0;
 }
 
+.note {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
 .modeGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;

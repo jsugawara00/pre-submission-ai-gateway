@@ -75,6 +75,15 @@
   font-size: 0.9rem;
 }
 
+.disclaimer {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
 /* リスク／確信度バッジ */
 .badge {
   display: inline-block;

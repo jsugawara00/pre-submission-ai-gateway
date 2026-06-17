@@ -63,3 +63,5 @@ rulebook.md
 /scripts/experiment-cosmetic.ts
 /scripts/make-cosmetic-variant.py
 /scripts/make-missing-variant.py
+/scripts/make-final-test-variant.py
+/scripts/final-check.ts

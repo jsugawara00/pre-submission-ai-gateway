@@ -81,6 +81,9 @@ export default function Home() {
             <strong>事後チェックは題材を選びません。</strong>「1件の申請（チェック対象）」と「その関係書類」さえ入れれば、輸入業務にかぎらずそのまま使えます。
             <strong>事前チェック</strong>は、わかりやすさのため<strong>輸入申告フォームを一例</strong>として用意しています。
           </p>
+          <p className={styles.modesNote}>
+            ※ システムの仕組み自体は業務を選びませんが、照合精度を支える専用ルールはここで一例とする輸入申告業務向けに用意しています。そのため輸入申告以外のチェックは正しい結果を保証できませんが、一定の精度でお試しいただけます。
+          </p>
         </div>
         <div className={styles.modeGrid}>
           <Link href="/post-check" className={styles.mode}>
