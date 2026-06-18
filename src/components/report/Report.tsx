@@ -46,7 +46,7 @@ export function Report({ result, checkId }: { result: CheckResult; checkId: stri
       {/* 要確認（聞き返し）— 確認チャットで人間が確定でき、確定すると verdict が再計算される */}
       {result.clarifications.length > 0 && (
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>要確認（{result.clarifications.length}）</h2>
+          <h2 className={`${styles.sectionTitle} ${styles.sectionTitleAlert}`}>要確認（{result.clarifications.length}）</h2>
           <ClarificationPanel checkId={checkId} clarifications={result.clarifications} />
         </section>
       )}

@@ -70,6 +70,10 @@
   padding-bottom: 6px;
   border-bottom: 2px solid var(--border);
 }
+/* 「要確認」見出しは注意を引く強めの黄色 */
+.sectionTitleAlert {
+  color: #ffd633;
+}
 .empty {
   color: var(--muted);
   font-size: 0.9rem;
@@ -266,13 +270,17 @@
   font-weight: 700;
 }
 .matchPending .matchIcon {
-  color: var(--primary);
+  color: #ffd633;
 }
 .matchConfirmed .matchIcon {
   color: var(--verdict-pass);
 }
 .matchText {
   font-weight: 700;
+}
+/* 未確定時の文字は注意を引く強めの黄色 */
+.matchPending .matchText {
+  color: #ffd633;
 }
 .matchSub {
   font-size: 0.85rem;
