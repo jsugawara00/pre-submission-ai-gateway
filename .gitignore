@@ -56,6 +56,9 @@ conceal.md
 # 照合精度ルール（業務ノウハウ＝守秘。GitHubに含めない。ローカル限定）
 rulebook.md
 
+# rulebook の原本バックアップ（構造整理前のコピー。守秘・ローカル限定）
+copy_rulebook.md
+
 # 脆弱性ブレークダウン用の崩しコピー（原本のコピー。ローカル限定）
 /test-cases
 
