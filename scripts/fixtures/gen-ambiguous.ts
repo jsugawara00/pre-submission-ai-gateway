@@ -20,9 +20,12 @@ import fs from "node:fs";
 import path from "node:path";
 
 // --- 日本語フォント（Windows標準）。環境に無ければ候補を順に試す。 ---
+// family は .ttc（フォントコレクション）から該当フォントを選ぶための postScript 名。
+// pdfkit は registerFont(name, path, family) の family を fontkit.openSync(path, family) に渡す。
+// 例: msgothic.ttc には MS-Gothic / MS-UIGothic / MS-PGothic が同梱される。
 const FONT_CANDIDATES = [
-  { path: "C:/Windows/Fonts/msgothic.ttc", family: "MS Gothic" },
-  { path: "C:/Windows/Fonts/YuGothM.ttc", family: "Yu Gothic Medium" },
+  { path: "C:/Windows/Fonts/msgothic.ttc", family: "MS-Gothic" },
+  { path: "C:/Windows/Fonts/YuGothM.ttc", family: "YuGothic-Medium" },
   { path: "C:/Windows/Fonts/meiryo.ttc", family: "Meiryo" },
 ];
 

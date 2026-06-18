@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate": "node scripts/db-migrate.mjs"
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "gen:ambiguous": "tsx scripts/fixtures/gen-ambiguous.ts",
+    "gen:blurry": "python scripts/fixtures/gen-blurry.py"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
@@ -21,10 +23,12 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pdfkit": "^0.17.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "pdfkit": "^0.19.1",
     "tsx": "^4.22.4",
     "typescript": "^5",
     "vitest": "^4.1.8"
