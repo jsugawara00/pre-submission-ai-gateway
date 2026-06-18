@@ -108,3 +108,19 @@
   font-size: 0.88rem;
   margin-top: 8px;
 }
+/* 何回目の確認かの表示（再確認の上限を添える） */
+.count {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 8px 0 4px;
+}
+/* 再確認の上限に達したときの案内（入力欄の代わりに表示） */
+.limit {
+  background: var(--risk-medium-bg);
+  color: var(--risk-medium);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin-top: 8px;
+}

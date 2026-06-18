@@ -57,6 +57,7 @@ function buildSystem(): string {
 - 入力値が不自然・他資料や検算と矛盾する・候補から大きく外れる場合は decision="needs_followup" とし、message に具体的な確認質問を1つ書く。
 - accepted のとき、その確定値が申告側や他資料と新たに矛盾する場合のみ new_finding を1件返す（無ければ null）。new_finding の category は transcription_error / document_mismatch / anomaly のいずれか、risk は high/medium/low。
 - 推測で受理しない。確信が持てなければ needs_followup にする。
+- 会話履歴を見て、これが2回目以降の確認（前回 needs_followup を返した後）であれば、message に「前回なぜ確定できなかったか」を具体的に示し、どう直せばよいかを添えて訂正を促すこと。
 
 # 出力（JSONのみ。前置き・コードフェンス禁止）
 {
@@ -157,6 +158,7 @@ function buildTypeSystem(): string {
 - 人間が選んだ種別が、その書類の内容（要約や既存の検出事項）と整合する妥当な種別なら decision="accepted"。confirmed_type に選ばれた種別ラベル、confirmed_type_key に下記キーのいずれかを入れる。
 - 選択が候補に無い／内容と明らかに矛盾する／不自然な場合は decision="needs_followup" とし、message に確認質問を1つ書く（confirmed_type・confirmed_type_key は null）。
 - 「該当なし（照合から除外）」が選ばれたら decision="accepted"、excluded=true、confirmed_type_key="other"、new_findings=[]（この書類は照合から外す）。
+- 会話履歴を見て、これが2回目以降の確認（前回 needs_followup を返した後）であれば、message に「前回なぜ確定できなかったか」を具体的に示し、どの種別が妥当かのヒントを添えて訂正を促すこと。
 - accepted のとき、確定した種別を前提に「新たに判明する不一致・要確認」があれば new_findings に入れる（無ければ空配列）。**PDFは再添付されない**ので、既存の書類要約(documents.summary)・findings・unverified を根拠に軽量に判断する。読み直せない細部を推測で確定不一致にしてはならない。
 - new_findings の各要素は finding 形式（category は transcription_error / document_mismatch / anomaly、risk は high/medium/low、source_refs に doc_id を必ず付ける）。
 

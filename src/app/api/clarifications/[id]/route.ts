@@ -21,6 +21,7 @@ import {
   isDocTypeClarification,
   ClarifyError,
 } from "@/lib/engine/clarify";
+import { MAX_RECONFIRM, buildReconfirmLimitMessage } from "@/lib/engine/clarify-config";
 import type { CheckResult } from "@/lib/engine/schema";
 
 export const runtime = "nodejs";
@@ -61,6 +62,13 @@ export async function POST(
     }
     if (clarification.status === "resolved") {
       return NextResponse.json({ error: "この確認項目はすでに確定済みです。" }, { status: 409 });
+    }
+
+    // 再確認の上限ガード（堅牢性のためサーバー側で強制）。history の AI 突き返し回数が上限に達していたら、
+    // これ以上は精査せず（APIも呼ばず）打ち切り、レポート確認＋やり直しを促す。種別/値の両パス共通。
+    const priorReconfirm = history.filter((h) => h.role === "ai").length;
+    if (priorReconfirm >= MAX_RECONFIRM) {
+      return NextResponse.json({ decision: "limit_reached", message: buildReconfirmLimitMessage() });
     }
 
     // 書類種別の確認は「値の確定」と別物（確定後にその種別で照合を見直す）。専用パスで処理する。

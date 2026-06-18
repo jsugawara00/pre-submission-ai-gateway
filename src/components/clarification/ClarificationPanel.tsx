@@ -9,6 +9,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Clarification } from "@/lib/engine/schema";
+import { MAX_RECONFIRM } from "@/lib/engine/clarify-config";
 import styles from "./clarification.module.css";
 
 type Msg = { role: "ai" | "human"; text: string };
@@ -22,6 +23,7 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accepted, setAccepted] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState<string | null>(null);
 
   if (clarification.status === "resolved") {
     return (
@@ -64,6 +66,9 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
         );
         // 最新の verdict / 件数を反映するためサーバーコンポーネントを再取得
         router.refresh();
+      } else if (data.decision === "limit_reached") {
+        // 再確認の上限到達。これ以上は受け付けず、レポート確認＋やり直しを促す。
+        setLimitReached(data.message);
       }
       setBusy(false);
     } catch {
@@ -71,6 +76,9 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
       setBusy(false);
     }
   }
+
+  // 次の送信が何回目の確認か（これまでの自分の回答数 + 1）
+  const confirmCount = thread.filter((m) => m.role === "human").length + 1;
 
   return (
     <div className={styles.item}>
@@ -107,22 +115,29 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
 
       {accepted ? (
         <p className={styles.accepted}>✓ {accepted}</p>
+      ) : limitReached ? (
+        <p className={styles.limit}>{limitReached}</p>
       ) : (
-        <div className={styles.inputRow}>
-          <input
-            className={styles.input}
-            value={input}
-            placeholder={isType ? "候補から書類種別を選んでください" : "原本を確認した正しい値を入力"}
-            disabled={busy}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") send();
-            }}
-          />
-          <button className={styles.send} onClick={send} disabled={busy || !input.trim()}>
-            {busy ? "確認中…" : "送信"}
-          </button>
-        </div>
+        <>
+          <div className={styles.count}>
+            確認 {confirmCount} 回目（再確認は最大 {MAX_RECONFIRM} 回）
+          </div>
+          <div className={styles.inputRow}>
+            <input
+              className={styles.input}
+              value={input}
+              placeholder={isType ? "候補から書類種別を選んでください" : "原本を確認した正しい値を入力"}
+              disabled={busy}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") send();
+              }}
+            />
+            <button className={styles.send} onClick={send} disabled={busy || !input.trim()}>
+              {busy ? "確認中…" : "送信"}
+            </button>
+          </div>
+        </>
       )}
 
       {error && <p className={styles.error}>{error}</p>}
