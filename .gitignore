@@ -63,8 +63,8 @@ rulebook.md
 __pycache__/
 *.pyc
 
-# 耐性チェックの観察ログ（一時。ローカル限定）
-tmp_*.log
+# 一時ファイル（観察ログ・E2Eのbody/HTML等。ローカル限定）
+tmp_*
 
 # 崩しテスト用スクリプト（崩し生成・実験実行。ローカル限定）
 /scripts/experiment-cosmetic.ts
