@@ -47,6 +47,16 @@
   font-size: 0.82rem;
   color: var(--muted);
 }
+.required {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--risk-high);
+  vertical-align: middle;
+}
 .input {
   padding: 8px 10px;
   border: 1px solid var(--field-border);

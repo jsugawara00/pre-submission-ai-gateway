@@ -22,9 +22,12 @@ export const CORE_FIELDS: FieldDef[] = [
   { key: "invoice_number", label: "インボイス番号", placeholder: "例: INV-4471" },
   { key: "incoterms", label: "インボイス価格条件（建値）", placeholder: "例: CIF" },
   { key: "invoice_currency", label: "インボイス通貨コード", placeholder: "例: USD" },
+  // 通貨レート: インボイス通貨がJPY以外のときだけ表示・入力必須（後々の円換算計算で使用予定）。
+  // スキーマ設計v0.2 §3 には未掲載の新規キー。確定時にスキーマ側へ反映する（要相談事項）。
+  { key: "exchange_rate", label: "通貨レート", placeholder: "例: 150.25（1通貨あたりの円）" },
   { key: "invoice_price", label: "インボイス価格", placeholder: "例: 124,500" },
-  { key: "freight", label: "運賃", placeholder: "例: 2,000" },
-  { key: "insurance_amount", label: "保険金額", placeholder: "例: 500" },
+  { key: "freight", label: "運賃（JPY）", placeholder: "例: 2,000" },
+  { key: "insurance_amount", label: "保険金額（JPY）", placeholder: "例: 500" },
   { key: "origin_country", label: "原産地コード", placeholder: "例: CN" },
 ];
 

@@ -74,12 +74,21 @@ export default function PreCheckPage() {
   }
 
   async function handleSubmit() {
+    // インボイス通貨がJPY以外なら通貨レートは必須。JPY/未入力なら通貨レートは送信対象から除外する。
+    const currencyNow = (values["invoice_currency"] ?? "").trim().toUpperCase();
+    const rateRequired = currencyNow !== "" && currencyNow !== "JPY";
+
     const formInput: Record<string, string> = {};
     for (const [k, v] of Object.entries(values)) {
+      if (k === "exchange_rate" && !rateRequired) continue;
       if (v.trim()) formInput[k] = v.trim();
     }
     if (Object.keys(formInput).length === 0) {
       setError("申告内容を1項目以上入力してください。");
+      return;
+    }
+    if (rateRequired && !(values["exchange_rate"] ?? "").trim()) {
+      setError("インボイス通貨がJPY以外のため、通貨レートの入力が必須です。");
       return;
     }
     if (files.length === 0) {
@@ -116,12 +125,15 @@ export default function PreCheckPage() {
     }
   }
 
-  function renderField(key: string, label: string, placeholder?: string) {
+  function renderField(key: string, label: string, placeholder?: string, required = false) {
     const findings = findingsByKey.get(key);
     const hasError = Boolean(findings?.length);
     return (
       <div className={styles.field} key={key}>
-        <label className={styles.label}>{label}</label>
+        <label className={styles.label}>
+          {label}
+          {required && <span className={styles.required}>必須</span>}
+        </label>
         <input
           className={`${styles.input} ${hasError ? styles.inputError : ""}`}
           value={values[key] ?? ""}
@@ -142,6 +154,10 @@ export default function PreCheckPage() {
   }
 
   const verdict = result?.summary.verdict;
+
+  // インボイス通貨がJPY以外のときだけ通貨レートを表示・必須にする。
+  const currency = (values["invoice_currency"] ?? "").trim().toUpperCase();
+  const needsExchangeRate = currency !== "" && currency !== "JPY";
 
   return (
     <div className={styles.container}>
@@ -169,7 +185,15 @@ export default function PreCheckPage() {
       {/* 共通部 */}
       <div className={styles.card}>
         <div className={styles.sectionTitle}>申告共通部</div>
-        <div className={styles.grid}>{CORE_FIELDS.map((f) => renderField(f.key, f.label, f.placeholder))}</div>
+        <div className={styles.grid}>
+          {CORE_FIELDS.map((f) => {
+            // 通貨レートはJPY以外のときだけ表示（必須）。それ以外は通常表示。
+            if (f.key === "exchange_rate") {
+              return needsExchangeRate ? renderField(f.key, f.label, f.placeholder, true) : null;
+            }
+            return renderField(f.key, f.label, f.placeholder);
+          })}
+        </div>
       </div>
 
       {/* 明細欄 */}
