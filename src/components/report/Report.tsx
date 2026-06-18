@@ -20,17 +20,20 @@ export function Report({ result, checkId }: { result: CheckResult; checkId: stri
       {/* 検出された書類 */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>検出された書類（{result.documents.length}）</h2>
-        {result.documents.map((d) => (
-          <div key={d.doc_id} className={styles.row}>
-            <div className={styles.rowHead}>
-              <strong>{d.detected_type_label}</strong>
-              <span className={styles.docType}>
-                {d.doc_id} ・ 確信度 {Math.round(d.confidence * 100)}%
-              </span>
+        {result.documents.map((d) => {
+          // 種別末尾の()補足は表示しない（d番号で識別できるため）
+          const typeLabel = d.detected_type_label.replace(/\s*[（(][^）)]*[）)]\s*$/, "").trim();
+          return (
+            <div key={d.doc_id} className={styles.row}>
+              <div className={styles.rowHead}>
+                <span className={styles.docId}>（{d.doc_id}）</span>
+                <strong>{typeLabel}</strong>
+                <span className={styles.docType}>確信度 {Math.round(d.confidence * 100)}%</span>
+              </div>
+              <p className={styles.reason}>{d.summary}</p>
             </div>
-            <p className={styles.reason}>{d.summary}</p>
-          </div>
-        ))}
+          );
+        })}
       </section>
 
       {/* 検出された不一致・不審箇所 */}

@@ -221,6 +221,11 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+.docId {
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--primary);
+}
 .docType {
   font-size: 0.78rem;
   color: var(--muted);

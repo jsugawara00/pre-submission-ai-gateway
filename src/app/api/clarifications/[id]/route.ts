@@ -32,6 +32,8 @@ interface Body {
   answer?: string;
   history?: { role: "ai" | "human"; text: string }[];
   confirmedBy?: string;
+  /** 「確認できない／提示できない」＝確認を閉じて未確定のままレポートを確定する。 */
+  unresolved?: boolean;
 }
 
 export async function POST(
@@ -45,9 +47,10 @@ export async function POST(
     const answer = body.answer?.trim();
     const history = Array.isArray(body.history) ? body.history : [];
     const confirmedBy = body.confirmedBy?.trim() || "anonymous";
+    const unresolved = body.unresolved === true;
 
-    if (!checkId || !answer) {
-      return NextResponse.json({ error: "checkId と回答（answer）は必須です。" }, { status: 400 });
+    if (!checkId) {
+      return NextResponse.json({ error: "checkId は必須です。" }, { status: 400 });
     }
 
     const row = await getCheckResultById(checkId);
@@ -62,6 +65,50 @@ export async function POST(
     }
     if (clarification.status === "resolved") {
       return NextResponse.json({ error: "この確認項目はすでに確定済みです。" }, { status: 409 });
+    }
+
+    // 「確認できない／提示できない」: 人手で確定できない確認（例: 正規インボイスを貼り付ける手段がない）を
+    // 閉じ、該当項目を「照合できなかった項目」に残して verdict を確定可能にする（行き止まり防止）。
+    // AI は呼ばないため API を消費しない。再確認の上限に達した後でも使える。
+    if (unresolved) {
+      const fieldKey = clarification.field_key ?? `doc_type_${clarification.doc_id}`;
+      const updated: CheckResult = {
+        ...result,
+        clarifications: result.clarifications.map((c) =>
+          c.clarification_id === clarificationId ? { ...c, status: "resolved" as const } : c
+        ),
+        unverified: [
+          ...result.unverified,
+          {
+            field_key: fieldKey,
+            field_label: clarification.field_label,
+            reason: `人手で確認できなかったため未確定のまま確定しました（${clarification.doc_id}）。`,
+          },
+        ],
+      };
+      const finalized = finalizeCheckResult(updated, { regenerateHeadline: true });
+      await updateCheckResult(finalized);
+      await insertAuditLog({
+        action: "clarification_resolve",
+        applicationId: row.application_id,
+        checkId,
+        detail: {
+          clarification_id: clarificationId,
+          clarification_kind: "unresolved",
+          confirmed_value: "確認できず（このまま確定）",
+          confirmed_by: confirmedBy,
+          confirmed_at: new Date().toISOString(),
+        },
+      });
+      return NextResponse.json({
+        decision: "closed_unresolved",
+        message: "確認できないまま照合レポートを確定しました。該当項目は「照合できなかった項目」に記録しました。",
+        summary: finalized.summary,
+      });
+    }
+
+    if (!answer) {
+      return NextResponse.json({ error: "回答（answer）は必須です。" }, { status: 400 });
     }
 
     // 再確認の上限ガード（堅牢性のためサーバー側で強制）。history の AI 突き返し回数が上限に達していたら、

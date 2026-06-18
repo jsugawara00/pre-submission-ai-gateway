@@ -56,7 +56,10 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
         setBusy(false);
         return;
       }
-      setThread((t) => [...t, { role: "ai", text: data.message }]);
+      // 上限到達メッセージは下のバナーで出すので会話には積まない（二重表示防止）
+      if (data.decision !== "limit_reached") {
+        setThread((t) => [...t, { role: "ai", text: data.message }]);
+      }
       if (data.decision === "accepted") {
         setAccepted(
           (isType
@@ -70,6 +73,32 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
         // 再確認の上限到達。これ以上は受け付けず、レポート確認＋やり直しを促す。
         setLimitReached(data.message);
       }
+      setBusy(false);
+    } catch {
+      setError("通信エラーが発生しました。");
+      setBusy(false);
+    }
+  }
+
+  // 「確認できない／提示できない」: AIを呼ばず確認を閉じ、未確定項目として残してレポートを確定する。
+  async function giveUp() {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/clarifications/${clarification.clarification_id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ checkId, unresolved: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "確定に失敗しました。");
+        setBusy(false);
+        return;
+      }
+      setAccepted("確認できないまま確定しました。該当項目は「照合できなかった項目」に記録しました。");
+      router.refresh();
       setBusy(false);
     } catch {
       setError("通信エラーが発生しました。");
@@ -116,7 +145,12 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
       {accepted ? (
         <p className={styles.accepted}>✓ {accepted}</p>
       ) : limitReached ? (
-        <p className={styles.limit}>{limitReached}</p>
+        <>
+          <p className={styles.limit}>{limitReached}</p>
+          <button className={styles.giveUp} onClick={giveUp} disabled={busy}>
+            確認できない（このまま照合レポートを確定）
+          </button>
+        </>
       ) : (
         <>
           <div className={styles.count}>
@@ -137,6 +171,9 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
               {busy ? "確認中…" : "送信"}
             </button>
           </div>
+          <button className={styles.giveUp} onClick={giveUp} disabled={busy}>
+            確認できない・提示できない（このまま照合レポートを確定）
+          </button>
         </>
       )}
 

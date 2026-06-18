@@ -109,6 +109,24 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+.giveUp {
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.giveUp:hover {
+  color: var(--foreground);
+  border-color: var(--muted);
+}
+.giveUp:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .resolved {
   color: var(--risk-low);
   font-weight: 700;
