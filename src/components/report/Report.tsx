@@ -4,6 +4,7 @@
  */
 import type { CheckResult } from "@/lib/engine/schema";
 import { VerdictBanner } from "./VerdictBanner";
+import { MatchStatusBanner } from "./MatchStatusBanner";
 import { FindingCard } from "./FindingCard";
 import { ClarificationPanel } from "@/components/clarification/ClarificationPanel";
 import { NaccsExport } from "./NaccsExport";
@@ -12,6 +13,8 @@ import styles from "./report.module.css";
 export function Report({ result, checkId }: { result: CheckResult; checkId: string }) {
   return (
     <main className={styles.container}>
+      {/* 照合ステータス（verdictとは別軸）。チャットボットが関わる照合でのみヘッダに出す */}
+      {result.clarifications.length > 0 && <MatchStatusBanner summary={result.summary} />}
       <VerdictBanner summary={result.summary} />
 
       {/* 検出された書類 */}

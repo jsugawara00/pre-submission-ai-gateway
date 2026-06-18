@@ -232,3 +232,55 @@
   padding: 1px 8px;
   margin: 2px 6px 2px 0;
 }
+
+/* 照合ステータス（verdictとは別軸）。チャットボットが関わる照合でのみ表示する。
+   未確定はトップと同じ発光色（--glow=#36d6c2）で枠を光らせて目立たせる。 */
+.matchStatus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.matchPending {
+  border-color: var(--primary);
+  animation: matchGlow 1.8s ease-in-out infinite;
+}
+@keyframes matchGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(54, 214, 194, 0);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(54, 214, 194, 0.55);
+  }
+}
+.matchConfirmed {
+  border-color: var(--verdict-pass);
+}
+.matchIcon {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.matchPending .matchIcon {
+  color: var(--primary);
+}
+.matchConfirmed .matchIcon {
+  color: var(--verdict-pass);
+}
+.matchText {
+  font-weight: 700;
+}
+.matchSub {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .matchPending {
+    animation: none;
+    box-shadow: 0 0 12px rgba(54, 214, 194, 0.4);
+  }
+}

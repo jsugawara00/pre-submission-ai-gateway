@@ -3,7 +3,7 @@ import type { CheckResult, Verdict } from "@/lib/engine/schema";
 import styles from "./report.module.css";
 
 const VERDICT_LABEL: Record<Verdict, string> = {
-  blocked: "登録不可",
+  blocked: "申告不可",
   warning: "要注意",
   pass: "問題なし",
 };

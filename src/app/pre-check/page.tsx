@@ -14,7 +14,7 @@ import { CORE_FIELDS, LINE_FIELDS, LINE_ITEM_COUNT, lineKey } from "./fields";
 import styles from "./pre-check.module.css";
 
 const MAX_MB = 20;
-const VERDICT_LABEL: Record<Verdict, string> = { blocked: "登録不可", warning: "要注意", pass: "問題なし" };
+const VERDICT_LABEL: Record<Verdict, string> = { blocked: "申告不可", warning: "要注意", pass: "問題なし" };
 
 export default function PreCheckPage() {
   const inputRef = useRef<HTMLInputElement>(null);
