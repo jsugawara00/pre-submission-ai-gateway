@@ -131,6 +131,36 @@ describe("finalizeCheckResult", () => {
     expect(finalized.summary.headline).toBe("独自の見出し");
   });
 
+  it("regenerateHeadline=true なら古い headline を温存せず新状態の既定文に作り直す", () => {
+    // 確定後の再計算を模す: clarification は resolved、残りは medium のみ。
+    // 初回照合時の「書類種別確認が必要」という headline が残らないことを検証する。
+    const result = baseResult({
+      findings: [finding("medium")],
+      clarifications: [
+        {
+          clarification_id: "c1",
+          field_key: null,
+          field_label: "書類種別",
+          doc_id: "d4",
+          page: 1,
+          location: "欄",
+          region_hint: null,
+          ai_reading: null,
+          confidence: 0.9,
+          candidates: [],
+          question: "確認済み",
+          status: "resolved",
+        },
+      ],
+    });
+    result.summary.headline = "d4の書類種別確認が必要です。";
+    const finalized = finalizeCheckResult(result, { regenerateHeadline: true });
+    expect(finalized.summary.clarifications_open).toBe(0);
+    expect(finalized.summary.verdict).toBe("warning");
+    expect(finalized.summary.headline).not.toContain("書類種別確認が必要");
+    expect(finalized.summary.headline).toContain("中リスク");
+  });
+
   it("元オブジェクトを変更しない（純粋関数）", () => {
     const result = baseResult({ findings: [finding("high")] });
     finalizeCheckResult(result);

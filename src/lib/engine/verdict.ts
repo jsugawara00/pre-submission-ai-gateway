@@ -33,8 +33,14 @@ export function computeVerdict(input: VerdictInput): Verdict {
  * AI 出力の CheckResult を受け取り、summary の件数と verdict を実配列から再計算して
  * 確定版を返す（headline は AI の文言を尊重し、空の場合のみ既定文を補う）。
  * 元オブジェクトは変更せず、新しいオブジェクトを返す。
+ *
+ * opts.regenerateHeadline=true のときは、既存 headline を温存せず常に作り直す。
+ * clarification 確定後の再計算で使う（初回照合時の説明文が状態と食い違って残るのを防ぐ）。
  */
-export function finalizeCheckResult(result: CheckResult): CheckResult {
+export function finalizeCheckResult(
+  result: CheckResult,
+  opts: { regenerateHeadline?: boolean } = {}
+): CheckResult {
   const high = result.findings.filter((f) => f.risk === "high").length;
   const medium = result.findings.filter((f) => f.risk === "medium").length;
   const low = result.findings.filter((f) => f.risk === "low").length;
@@ -42,9 +48,10 @@ export function finalizeCheckResult(result: CheckResult): CheckResult {
   const clarificationsOpen = result.clarifications.filter((c) => c.status === "open").length;
 
   const verdict = computeVerdict({ high, medium, clarificationsOpen });
-  const headline = result.summary.headline?.trim()
-    ? result.summary.headline
-    : defaultHeadline(verdict, high, medium, clarificationsOpen);
+  const headline =
+    !opts.regenerateHeadline && result.summary.headline?.trim()
+      ? result.summary.headline
+      : defaultHeadline(verdict, high, medium, clarificationsOpen);
 
   return {
     ...result,

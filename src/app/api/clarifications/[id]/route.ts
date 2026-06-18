@@ -110,7 +110,8 @@ export async function POST(
         ),
         findings: [...result.findings, ...reply.new_findings],
       };
-      const finalized = finalizeCheckResult(updated);
+      // 確定後は headline を作り直す（初回照合時の「種別確認が必要」等の文言が残らないように）
+      const finalized = finalizeCheckResult(updated, { regenerateHeadline: true });
       await updateCheckResult(finalized);
 
       await insertAuditLog({
@@ -159,7 +160,8 @@ export async function POST(
       ),
       findings: reply.new_finding ? [...result.findings, reply.new_finding] : result.findings,
     };
-    const finalized = finalizeCheckResult(updated);
+    // 確定後は headline を作り直す（初回照合時の「確認が必要」等の文言が残らないように）
+    const finalized = finalizeCheckResult(updated, { regenerateHeadline: true });
     await updateCheckResult(finalized);
 
     const conversationLog = [
