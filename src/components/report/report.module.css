@@ -248,14 +248,14 @@
 }
 .matchPending {
   border-color: var(--primary);
-  animation: matchGlow 1.8s ease-in-out infinite;
+  animation: matchGlow 1.6s ease-in-out infinite;
 }
 @keyframes matchGlow {
   0%, 100% {
-    box-shadow: 0 0 0 rgba(54, 214, 194, 0);
+    box-shadow: 0 0 8px rgba(54, 214, 194, 0.4);
   }
   50% {
-    box-shadow: 0 0 18px rgba(54, 214, 194, 0.55);
+    box-shadow: 0 0 36px rgba(54, 214, 194, 0.95);
   }
 }
 .matchConfirmed {
@@ -281,6 +281,6 @@
 @media (prefers-reduced-motion: reduce) {
   .matchPending {
     animation: none;
-    box-shadow: 0 0 12px rgba(54, 214, 194, 0.4);
+    box-shadow: 0 0 26px rgba(54, 214, 194, 0.75);
   }
 }

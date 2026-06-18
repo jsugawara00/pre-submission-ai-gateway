@@ -81,7 +81,7 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
   const confirmCount = thread.filter((m) => m.role === "human").length + 1;
 
   return (
-    <div className={styles.item}>
+    <div className={`${styles.item} ${styles.glowItem}`}>
       <div className={styles.head}>
         <span className={styles.title}>{clarification.field_label}</span>
         <span className={styles.loc}>

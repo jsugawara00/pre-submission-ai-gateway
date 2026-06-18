@@ -5,6 +5,25 @@
   margin-bottom: 14px;
   background: var(--surface);
 }
+/* 未解決（open）のチャット項目を、照合ステータスと同じティール（--glow=#36d6c2）で強く発光させる */
+.glowItem {
+  border-color: var(--primary);
+  animation: glowItem 1.6s ease-in-out infinite;
+}
+@keyframes glowItem {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(54, 214, 194, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 36px rgba(54, 214, 194, 0.95);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glowItem {
+    animation: none;
+    box-shadow: 0 0 26px rgba(54, 214, 194, 0.75);
+  }
+}
 .head {
   display: flex;
   align-items: center;
