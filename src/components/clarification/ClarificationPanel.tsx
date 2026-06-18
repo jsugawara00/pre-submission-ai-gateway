@@ -15,6 +15,8 @@ type Msg = { role: "ai" | "human"; text: string };
 
 function ClarificationItem({ checkId, clarification }: { checkId: string; clarification: Clarification }) {
   const router = useRouter();
+  // 書類種別の確認か（rulebook: field_key=null かつ field_label="書類種別"）。文言を切り替える。
+  const isType = clarification.field_key === null && clarification.field_label === "書類種別";
   const [thread, setThread] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -55,8 +57,10 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
       setThread((t) => [...t, { role: "ai", text: data.message }]);
       if (data.decision === "accepted") {
         setAccepted(
-          `確定値「${data.confirmedValue}」を受理しました。` +
-            (data.newFindingAdded ? "（この値により新たな不一致を検出しました）" : "")
+          (isType
+            ? `書類種別を「${data.confirmedValue}」で確定しました。`
+            : `確定値「${data.confirmedValue}」を受理しました。`) +
+            (data.newFindingAdded ? "（この確定により新たな確認事項を検出しました）" : "")
         );
         // 最新の verdict / 件数を反映するためサーバーコンポーネントを再取得
         router.refresh();
@@ -82,7 +86,7 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
 
       {clarification.candidates.length > 0 && (
         <div className={styles.candidates}>
-          候補（クリックで入力）:{" "}
+          {isType ? "種別の候補（クリックで選択）:" : "候補（クリックで入力）:"}{" "}
           {clarification.candidates.map((c, i) => (
             <span key={i} className={styles.candidate} onClick={() => setInput(c)}>
               {c}
@@ -108,7 +112,7 @@ function ClarificationItem({ checkId, clarification }: { checkId: string; clarif
           <input
             className={styles.input}
             value={input}
-            placeholder="原本を確認した正しい値を入力"
+            placeholder={isType ? "候補から書類種別を選んでください" : "原本を確認した正しい値を入力"}
             disabled={busy}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {

@@ -15,7 +15,12 @@ import {
   insertAuditLog,
 } from "@/lib/db/queries";
 import { finalizeCheckResult } from "@/lib/engine/verdict";
-import { resolveClarificationTurn, ClarifyError } from "@/lib/engine/clarify";
+import {
+  resolveClarificationTurn,
+  resolveTypeClarificationTurn,
+  isDocTypeClarification,
+  ClarifyError,
+} from "@/lib/engine/clarify";
 import type { CheckResult } from "@/lib/engine/schema";
 
 export const runtime = "nodejs";
@@ -56,6 +61,78 @@ export async function POST(
     }
     if (clarification.status === "resolved") {
       return NextResponse.json({ error: "この確認項目はすでに確定済みです。" }, { status: 409 });
+    }
+
+    // 書類種別の確認は「値の確定」と別物（確定後にその種別で照合を見直す）。専用パスで処理する。
+    if (isDocTypeClarification(clarification)) {
+      const reply = await resolveTypeClarificationTurn({ result, clarification, answer, history });
+
+      if (reply.decision === "needs_followup") {
+        return NextResponse.json({ decision: "needs_followup", message: reply.message });
+      }
+
+      // accepted: 確定種別を該当書類に反映し、種別前提で判明した不一致(new_findings)を追加（軽量再照合）
+      const confirmedLabel = reply.excluded
+        ? "該当なし（照合から除外）"
+        : reply.confirmed_type ?? answer;
+      const typeKey = reply.excluded ? "other" : reply.confirmed_type_key ?? "other";
+      // AIが accepted で message を空にすることがあるためフォールバックを用意（空の吹き出し防止）。
+      const resolveMessage =
+        reply.message?.trim() || `書類種別を「${confirmedLabel}」で確定しました。`;
+
+      const updated: CheckResult = {
+        ...result,
+        documents: result.documents.map((d) =>
+          d.doc_id === clarification.doc_id
+            ? {
+                ...d,
+                detected_type: typeKey,
+                detected_type_label: reply.excluded
+                  ? `${d.detected_type_label}（照合から除外）`
+                  : confirmedLabel,
+                confidence: 1,
+                summary: reply.excluded
+                  ? `${d.summary}（人間の確認により照合対象から除外）`
+                  : d.summary,
+              }
+            : d
+        ),
+        clarifications: result.clarifications.map((c) =>
+          c.clarification_id === clarificationId ? { ...c, status: "resolved" as const } : c
+        ),
+        findings: [...result.findings, ...reply.new_findings],
+      };
+      const finalized = finalizeCheckResult(updated);
+      await updateCheckResult(finalized);
+
+      await insertAuditLog({
+        action: "clarification_resolve",
+        applicationId: row.application_id,
+        checkId,
+        detail: {
+          clarification_id: clarificationId,
+          clarification_kind: "doc_type",
+          confirmed_value: confirmedLabel,
+          confirmed_type_key: typeKey,
+          excluded: reply.excluded,
+          confirmed_by: confirmedBy,
+          confirmed_at: new Date().toISOString(),
+          new_finding_added: reply.new_findings.length > 0,
+          conversation_log: [
+            ...history,
+            { role: "human" as const, text: answer },
+            { role: "ai" as const, text: resolveMessage },
+          ],
+        },
+      });
+
+      return NextResponse.json({
+        decision: "accepted",
+        message: resolveMessage,
+        confirmedValue: confirmedLabel,
+        newFindingAdded: reply.new_findings.length > 0,
+        summary: finalized.summary,
+      });
     }
 
     const reply = await resolveClarificationTurn({ result, clarification, answer, history });

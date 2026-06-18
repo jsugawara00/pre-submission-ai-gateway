@@ -7,8 +7,19 @@
  */
 
 import { z } from "zod";
-import { findingSchema, type CheckResult, type Clarification } from "./schema";
+import { DETECTED_TYPES, findingSchema, type CheckResult, type Clarification } from "./schema";
 import { callClaude } from "./claude";
+
+/**
+ * 種別確定用の clarification を見分ける目印。
+ * rulebook（種別(1)）で「field_label = "書類種別"」と定めているため、これで判定する。
+ */
+export const DOC_TYPE_CLARIFICATION_LABEL = "書類種別";
+
+/** この clarification が「書類種別の確認」かどうか。 */
+export function isDocTypeClarification(c: Clarification): boolean {
+  return c.field_key === null && c.field_label === DOC_TYPE_CLARIFICATION_LABEL;
+}
 
 /** 確認チャットでAIが返す1ターン分の応答スキーマ。 */
 export const clarifyReplySchema = z.object({
@@ -115,4 +126,106 @@ export async function resolveClarificationTurn(input: ClarifyTurnInput): Promise
     }
   }
   throw new ClarifyError("確認応答の形式が不正です。", lastRaw);
+}
+
+// =============================================================================
+// 種別確定（書類種別の聞き返し）— 値の確定とは別物なので専用に扱う。
+// 人間が選んだ「書類種別」を受け取り、その種別を前提に照合への影響を軽量に見直す
+// （PDFは再投入せず、初回照合で得た書類要約・findings・unverified を根拠にする）。
+// =============================================================================
+
+/** 種別確定の1ターンでAIが返す応答スキーマ。 */
+export const typeClarifyReplySchema = z.object({
+  decision: z.enum(["accepted", "needs_followup"]),
+  message: z.string(),
+  /** 確定した種別ラベル（候補から）。needs_followup のとき null。 */
+  confirmed_type: z.string().nullable(),
+  /** 確定種別の機械キー（DETECTED_TYPES のいずれか）。excluded / needs_followup のとき null 可。 */
+  confirmed_type_key: z.string().nullable(),
+  /** 「該当なし（照合から除外）」が選ばれたか。 */
+  excluded: z.boolean().default(false),
+  /** 確定種別を前提に新たに判明する不一致・要確認（軽量再照合。0件でよい）。 */
+  new_findings: z.array(findingSchema).default([]),
+});
+
+export type TypeClarifyReply = z.infer<typeof typeClarifyReplySchema>;
+
+function buildTypeSystem(): string {
+  return `あなたは輸入申告書類の照合エンジンの「確認担当」です。ある書類の「書類種別」が判別しにくかったため、人間がどの種別かを確認して選びました。その選択を受け取り、妥当性を判断し、確定した種別を前提に照合への影響を軽量に見直します。
+
+# 判断ルール
+- 人間が選んだ種別が、その書類の内容（要約や既存の検出事項）と整合する妥当な種別なら decision="accepted"。confirmed_type に選ばれた種別ラベル、confirmed_type_key に下記キーのいずれかを入れる。
+- 選択が候補に無い／内容と明らかに矛盾する／不自然な場合は decision="needs_followup" とし、message に確認質問を1つ書く（confirmed_type・confirmed_type_key は null）。
+- 「該当なし（照合から除外）」が選ばれたら decision="accepted"、excluded=true、confirmed_type_key="other"、new_findings=[]（この書類は照合から外す）。
+- accepted のとき、確定した種別を前提に「新たに判明する不一致・要確認」があれば new_findings に入れる（無ければ空配列）。**PDFは再添付されない**ので、既存の書類要約(documents.summary)・findings・unverified を根拠に軽量に判断する。読み直せない細部を推測で確定不一致にしてはならない。
+- new_findings の各要素は finding 形式（category は transcription_error / document_mismatch / anomaly、risk は high/medium/low、source_refs に doc_id を必ず付ける）。
+
+# confirmed_type_key の語彙
+- 次のいずれか: ${DETECTED_TYPES.join(", ")}
+
+# 出力（JSONのみ。前置き・コードフェンス禁止）
+{
+  "decision": "accepted" | "needs_followup",
+  "message": string,
+  "confirmed_type": string | null,
+  "confirmed_type_key": string | null,
+  "excluded": boolean,
+  "new_findings": [
+    { "finding_id": string, "category": string, "field_key": string|null, "field_label": string,
+      "declared_value": string|null, "source_value": string|null,
+      "source_refs": [ { "doc_id": string, "page": number|null, "location": string } ],
+      "risk": "high"|"medium"|"low", "reason": string, "suggestion": string }
+  ]
+}`;
+}
+
+function buildTypeUser(input: ClarifyTurnInput): string {
+  const context = {
+    documents: input.result.documents,
+    findings: input.result.findings,
+    unverified: input.result.unverified,
+    clarification: input.clarification,
+  };
+  const lines = [
+    "# 照合の文脈（書類要約・既存の検出事項・照合できなかった項目・対象の確認項目）",
+    JSON.stringify(context, null, 2),
+    "",
+    "# これまでの会話",
+    input.history.length
+      ? input.history.map((h) => `${h.role === "ai" ? "確認担当" : "人間"}: ${h.text}`).join("\n")
+      : "（なし）",
+    "",
+    `# 人間が選んだ書類種別（対象: ${input.clarification.doc_id}）`,
+    input.answer,
+    "",
+    "上記スキーマのJSONのみを返してください。",
+  ];
+  return lines.join("\n");
+}
+
+/** 種別確定の1ターンを実行する。zod検証失敗は1回リトライ、再失敗で ClarifyError。 */
+export async function resolveTypeClarificationTurn(
+  input: ClarifyTurnInput
+): Promise<TypeClarifyReply> {
+  const system = buildTypeSystem();
+  const userText = buildTypeUser(input);
+
+  let lastRaw = "";
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const text = (
+      await callClaude({
+        system,
+        userText: attempt === 0 ? userText : userText + "\n\n（重要）JSONのみを返してください。",
+        pdfs: [],
+      })
+    ).text;
+    lastRaw = text;
+    try {
+      const parsed = typeClarifyReplySchema.safeParse(JSON.parse(extractJson(text)));
+      if (parsed.success) return parsed.data;
+    } catch {
+      /* 次の試行へ */
+    }
+  }
+  throw new ClarifyError("種別確認の応答形式が不正です。", lastRaw);
 }
