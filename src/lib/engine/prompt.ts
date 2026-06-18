@@ -94,7 +94,7 @@ ${rulebook}`
 - 文字が不鮮明で判読確信度が低い箇所は、勝手に1つに確定せず clarifications に入れる。読めた候補（candidates）と確信度（confidence, 0-1）を添え、status は "open" とする。
 
 # 判定手順（この順で行う）
-1. 各書類の種別を判定（detected_type）
+1. 各書類の種別を判定（detected_type）し、確信度を付ける。種別の確信度が低い書類や、照合の出所が衝突する書類があれば、その書類について種別を確認する clarification を必ず1件作る（findings を出す書類でも省略しない）。具体的な起動条件・閾値は後述の補足ルール「チャットボットを立てる時のルール 種別(1)」に従う（この判定は飛ばさない）。
 2. 各書類からキー項目を抽出
 3. 申告側（role=target＝チェック対象の登録帳票／事前モードはフォーム）と元資料（role=reference）を照合 → 不一致は category="transcription_error"
 4. 元資料（role=reference）どうしを照合 → 不一致は category="document_mismatch"

@@ -102,24 +102,33 @@ async function runOne(label: string, checkId: string, pdfs: ReturnType<typeof pd
 
 async function main() {
   loadEnvLocal();
-  console.log("実APIで耐性チェックを実行します（Opus 4.8・クレジット消費・全5チェック）\n");
+  // 実行範囲を引数で絞れる: "ambiguous"=あやふやのみ / "blurry"=不鮮明のみ / 無指定=全部
+  const only = process.argv[2];
+  const runBlurry = !only || only === "blurry";
+  const runAmbiguous = !only || only === "ambiguous";
+  const count = (runBlurry ? 1 : 0) + (runAmbiguous ? 4 : 0);
+  console.log(`実APIで耐性チェックを実行します（Opus 4.8・クレジット消費・${count}チェック）\n`);
 
   // 1) 不鮮明系（1チェック）
-  await runOne("不鮮明系 [blurry 3枚]", "chk_obs_blurry", [
-    pdf("blurry_3.pdf", "target"),
-    pdf("blurry_1.pdf", "reference"),
-    pdf("blurry_2.pdf", "reference"),
-  ]);
+  if (runBlurry) {
+    await runOne("不鮮明系 [blurry 3枚]", "chk_obs_blurry", [
+      pdf("blurry_3.pdf", "target"),
+      pdf("blurry_1.pdf", "reference"),
+      pdf("blurry_2.pdf", "reference"),
+    ]);
+  }
 
   // 2) あやふや系（各1枚を単独target、種別判定の純度を観察）
-  const ambiguous: Array<[string, string]> = [
-    ["ambiguous_1.pdf", "invoice↔packing_list"],
-    ["ambiguous_2.pdf", "bill_of_lading↔invoice"],
-    ["ambiguous_3.pdf", "certificate_of_origin↔invoice"],
-    ["ambiguous_4.pdf", "declaration_form↔invoice↔other"],
-  ];
-  for (const [file, intent] of ambiguous) {
-    await runOne(`あやふや [${file} / 想定:${intent}]`, `chk_obs_${file}`, [pdf(file, "target")]);
+  if (runAmbiguous) {
+    const ambiguous: Array<[string, string]> = [
+      ["ambiguous_1.pdf", "invoice↔packing_list"],
+      ["ambiguous_2.pdf", "bill_of_lading↔invoice"],
+      ["ambiguous_3.pdf", "certificate_of_origin↔invoice"],
+      ["ambiguous_4.pdf", "declaration_form↔invoice↔other"],
+    ];
+    for (const [file, intent] of ambiguous) {
+      await runOne(`あやふや [${file} / 想定:${intent}]`, `chk_obs_${file}`, [pdf(file, "target")]);
+    }
   }
 
   console.log("\n=== 観察完了 ===");
