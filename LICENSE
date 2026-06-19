@@ -1,0 +1,24 @@
+Copyright (c) 2026 Junichi Sugawara. All Rights Reserved.
+
+申請前AI検問所（Pre-submission Validation Gateway）
+
+本ソフトウェアおよび関連ドキュメント（ソースコード、設計ドキュメント、UI、
+照合ロジック等を含む。以下「本成果物」）の著作権は、著作者 Junichi Sugawara に帰属します。
+
+著作者の事前の書面による許可なく、本成果物の全部または一部について、
+複製・改変・再配布・再現・公衆送信・商用利用・第三者への提供を行うことを禁止します。
+
+本リポジトリの公開およびデモは、閲覧・評価を目的とするものであり、
+上記の行為に対する許諾を与えるものではありません。
+
+---
+
+This is proprietary software. All rights reserved.
+
+No part of this work (including source code, design documents, UI, and
+matching logic) may be copied, modified, redistributed, reproduced, publicly
+transmitted, used commercially, or provided to third parties without the prior
+written permission of the copyright holder, Junichi Sugawara.
+
+Publication of this repository and its demo is for viewing and evaluation
+purposes only and does not grant any license to the above acts.

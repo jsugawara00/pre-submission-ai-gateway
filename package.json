@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "db:migrate": "node scripts/db-migrate.mjs",
     "gen:ambiguous": "tsx scripts/fixtures/gen-ambiguous.ts",
-    "gen:blurry": "python scripts/fixtures/gen-blurry.py"
+    "gen:blurry": "python scripts/fixtures/gen-blurry.py",
+    "gen:blurry-sample": "python scripts/fixtures/gen-blurry-sample.py"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",

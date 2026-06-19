@@ -75,3 +75,11 @@ tmp_*
 /scripts/make-missing-variant.py
 /scripts/make-final-test-variant.py
 /scripts/final-check.ts
+/scripts/hell-test.ts
+
+# 内部作業メモ（実書類由来データ・業務ノウハウを含む。GitHubに含めない。ローカル限定）
+/TODO.md
+
+# Claude Code / エージェント向け実装指示（内部設計を含む。公開しない。ローカル限定）
+/CLAUDE.md
+/AGENTS.md
