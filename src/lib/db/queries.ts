@@ -236,3 +236,94 @@ export async function insertAuditLog(input: AuditLogInput): Promise<number> {
   ]);
   return result.insertId;
 }
+
+// --- access_codes（B案認証＋累計回数制限） ---
+
+export interface AccessCodeRow {
+  code: string;
+  label: string | null;
+  max_uses: number;
+  used_count: number;
+  disabled: number; // 0/1（MySQL の TINYINT）
+  created_at: Date;
+  updated_at: Date;
+}
+
+export async function getAccessCode(code: string): Promise<AccessCodeRow | null> {
+  const sql = `SELECT * FROM access_codes WHERE code = ? LIMIT 1`;
+  const [rows] = await getPool().execute<RowDataPacket[]>(sql, [code]);
+  const row = rows[0];
+  return row ? (row as AccessCodeRow) : null;
+}
+
+/** 認証ゲート用: コードが存在し、無効化されていなければ有効とみなす（残回数は照合実行時に判定）。 */
+export async function isAccessCodeActive(code: string): Promise<boolean> {
+  const row = await getAccessCode(code);
+  return !!row && row.disabled === 0;
+}
+
+export type ConsumeAccessResult =
+  | { ok: true; row: AccessCodeRow }
+  | { ok: false; reason: "not_found" | "disabled" | "limit_reached" };
+
+/**
+ * 照合1回ぶんを消費する（used_count を +1）。上限・無効化はこの1本のUPDATEで原子的に判定し、
+ * 同時実行でも上限を超えないようにする（条件に合致しなければ affectedRows=0）。
+ * 失敗時は理由を判別して返す。実際にClaude APIを呼ぶ前にこれを通す。
+ */
+export async function consumeAccessCode(code: string): Promise<ConsumeAccessResult> {
+  const sql = `
+    UPDATE access_codes
+    SET used_count = used_count + 1
+    WHERE code = ? AND disabled = 0 AND used_count < max_uses
+  `;
+  const [res] = await getPool().execute<ResultSetHeader>(sql, [code]);
+  if (res.affectedRows === 1) {
+    const row = await getAccessCode(code);
+    return { ok: true, row: row! };
+  }
+  // 消費できなかった理由を判別する。
+  const row = await getAccessCode(code);
+  if (!row) return { ok: false, reason: "not_found" };
+  if (row.disabled !== 0) return { ok: false, reason: "disabled" };
+  return { ok: false, reason: "limit_reached" };
+}
+
+/** 照合がエラーで失敗したときに消費を取り消す（返金。0未満にはしない）。 */
+export async function releaseAccessCode(code: string): Promise<void> {
+  const sql = `UPDATE access_codes SET used_count = GREATEST(used_count - 1, 0) WHERE code = ?`;
+  await getPool().execute(sql, [code]);
+}
+
+// --- 運用（発行・一覧・変更）。発行スクリプトから使う ---
+
+export interface CreateAccessCodeInput {
+  code: string;
+  label?: string | null;
+  maxUses: number;
+}
+
+export async function createAccessCode(input: CreateAccessCodeInput): Promise<void> {
+  const sql = `INSERT INTO access_codes (code, label, max_uses) VALUES (?, ?, ?)`;
+  await getPool().execute(sql, [input.code, input.label ?? null, input.maxUses]);
+}
+
+export async function listAccessCodes(): Promise<AccessCodeRow[]> {
+  const sql = `SELECT * FROM access_codes ORDER BY created_at DESC`;
+  const [rows] = await getPool().execute<RowDataPacket[]>(sql);
+  return rows as AccessCodeRow[];
+}
+
+/** 累計上限を変更する（増減どちらも可）。存在しなければ false。 */
+export async function setAccessCodeMaxUses(code: string, maxUses: number): Promise<boolean> {
+  const sql = `UPDATE access_codes SET max_uses = ? WHERE code = ?`;
+  const [res] = await getPool().execute<ResultSetHeader>(sql, [maxUses, code]);
+  return res.affectedRows === 1;
+}
+
+/** コードの有効/無効を切り替える。存在しなければ false。 */
+export async function setAccessCodeDisabled(code: string, disabled: boolean): Promise<boolean> {
+  const sql = `UPDATE access_codes SET disabled = ? WHERE code = ?`;
+  const [res] = await getPool().execute<ResultSetHeader>(sql, [disabled ? 1 : 0, code]);
+  return res.affectedRows === 1;
+}

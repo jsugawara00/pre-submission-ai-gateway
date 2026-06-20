@@ -1,0 +1,87 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f5f3ec; /* ライトテーブルのクリーム背景 */
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 32px 28px;
+  background: #ffffff;
+  border: 1px solid #e3e0d6;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1f2a2a;
+}
+
+.lead {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #5b635f;
+}
+
+.input {
+  padding: 12px 14px;
+  font-size: 1rem;
+  border: 1px solid #cfd4cf;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:focus {
+  border-color: #36d6c2;
+  box-shadow: 0 0 0 3px rgba(54, 214, 194, 0.25);
+}
+
+.button {
+  padding: 12px 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #06322c;
+  background: #36d6c2;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.button:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #c0392b;
+}
+
+.back {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: #5b635f;
+  text-align: center;
+  text-decoration: none;
+}
+
+.back:hover {
+  color: #1f2a2a;
+}

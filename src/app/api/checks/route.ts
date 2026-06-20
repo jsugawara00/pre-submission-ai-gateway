@@ -14,7 +14,9 @@
  */
 
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { validatePdf, savePdfEncrypted, MAX_PDF_BYTES } from "@/lib/storage";
+import { ACCESS_CODE_COOKIE, buildAccessDenialMessage } from "@/lib/access-config";
 import { runCheck, EngineError, EngineUnavailableError, type PdfInput } from "@/lib/engine";
 import {
   createApplication,
@@ -23,6 +25,8 @@ import {
   createCheckResult,
   insertAuditLog,
   generateCheckId,
+  consumeAccessCode,
+  releaseAccessCode,
   type DocumentMeta,
 } from "@/lib/db/queries";
 
@@ -33,7 +37,18 @@ const MAX_FILES = 10;
 
 export async function POST(request: Request): Promise<Response> {
   let applicationId: string | null = null;
+  // 回数を消費したコード。途中で照合が失敗したら返金（release）するために保持する。
+  let consumedCode: string | null = null;
   try {
+    // 認証: アクセスコード（Cookie）必須。middleware でも保護するが、APIでも二重に確認する。
+    const accessCode = (await cookies()).get(ACCESS_CODE_COOKIE)?.value ?? null;
+    if (!accessCode) {
+      return NextResponse.json(
+        { error: "アクセスコードでの認証が必要です。" },
+        { status: 401 }
+      );
+    }
+
     const form = await request.formData();
 
     const mode = form.get("mode") === "pre" ? "pre" : "post";
@@ -103,6 +118,15 @@ export async function POST(request: Request): Promise<Response> {
       buffers.push(buffer);
     }
 
+    // 回数制限: 照合1回ぶんを消費する（上限到達・無効化なら Claude API を呼ばず打ち切る）。
+    // 保存処理に入る前に弾くことで、無駄なストレージ書き込みも避ける。
+    const consume = await consumeAccessCode(accessCode);
+    if (!consume.ok) {
+      const status = consume.reason === "limit_reached" ? 429 : 403;
+      return NextResponse.json({ error: buildAccessDenialMessage(consume.reason) }, { status });
+    }
+    consumedCode = accessCode;
+
     // applications 作成
     applicationId = await createApplication({ mode, formInput, status: "checking" });
 
@@ -130,6 +154,7 @@ export async function POST(request: Request): Promise<Response> {
     await insertAuditLog({
       action: "upload",
       applicationId,
+      actor: consumedCode,
       detail: { file_count: documents.length },
     });
 
@@ -149,6 +174,7 @@ export async function POST(request: Request): Promise<Response> {
       action: "check",
       applicationId,
       checkId,
+      actor: consumedCode,
       detail: { verdict: result.summary.verdict },
     });
 
@@ -156,6 +182,14 @@ export async function POST(request: Request): Promise<Response> {
   } catch (err) {
     // サーバーログには原因を残す（レスポンスには露出させない）。運用・デバッグのため。
     console.error("[checks] 照合処理エラー:", err);
+    // 照合が完了せず失敗したので、消費した回数を返金する（ベストエフォート）。
+    if (consumedCode) {
+      try {
+        await releaseAccessCode(consumedCode);
+      } catch {
+        /* noop */
+      }
+    }
     if (applicationId) {
       // 失敗を記録（ベストエフォート。失敗時の後始末でさらに例外が出ても握り潰す）
       try {

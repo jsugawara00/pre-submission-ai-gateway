@@ -83,3 +83,6 @@ tmp_*
 # Claude Code / エージェント向け実装指示（内部設計を含む。公開しない。ローカル限定）
 /CLAUDE.md
 /AGENTS.md
+
+# 一般公開作業の進め方メモ（本人＋次プロジェクト用の引き継ぎ。公開しない。ローカル限定）
+/docs/_release-playbook.md
