@@ -14,11 +14,16 @@ import { join } from "node:path";
 import { DETECTED_TYPES, KNOWN_FIELD_KEYS, type Mode } from "./schema";
 
 /**
- * 照合精度ルール（rulebook.md）をプロジェクトルートから読み込む。
- * rulebook は業務ノウハウ＝守秘のため git 管理外（.gitignore で除外）。
- * 存在しない・読めない場合は注入をスキップする（ルール無し＝AIの自由判断のみ）。
+ * 照合精度ルール（rulebook）を読み込む。業務ノウハウ＝守秘のため git 管理外。
+ * 優先順位:
+ *  1. 環境変数 RULEBOOK_MD（デプロイ環境向け。Vercel等の env/Secret に本文を入れる＝
+ *     リポジトリにファイルを置かずにサーバー側へ注入する。設計の「秘密を見せず動かす」核）
+ *  2. プロジェクトルートの rulebook.md（ローカル開発向け）
+ * どちらも無ければ注入をスキップする（ルール無し＝AIの自由判断のみ）。
  */
 function loadRulebook(): string {
+  const fromEnv = process.env.RULEBOOK_MD;
+  if (fromEnv && fromEnv.trim().length > 0) return fromEnv.trim();
   try {
     const text = readFileSync(join(process.cwd(), "rulebook.md"), "utf8").trim();
     return text.length > 0 ? text : "";

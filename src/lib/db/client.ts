@@ -4,6 +4,8 @@
  * - 接続情報は環境変数 DATABASE_URL（例: mysql://user:pass@host:3306/db）から取得する。
  * - Next.js の開発時ホットリロードでプールが多重生成されないよう、globalThis に保持する。
  * - 生SQLはすべてプレースホルダ（execute）で扱う方針（CLAUDE.md 第6章）。
+ * - クラウドDB（TiDB Serverless 等＝localhost以外）は TLS 必須のため自動でSSL有効化。
+ *   ローカルMySQL（localhost）はSSL無効。`?ssl=true`/`?ssl=false` で明示上書きも可能。
  */
 
 import mysql from "mysql2/promise";
@@ -15,8 +17,15 @@ function buildPool(): mysql.Pool {
   }
 
   const parsed = new URL(url);
+  const host = parsed.hostname;
+  const sslParam = parsed.searchParams.get("ssl");
+  // 明示指定があれば従い、無ければ「localhost以外＝クラウド」でSSLを有効化する。
+  const useSsl =
+    sslParam === "true" ||
+    (sslParam !== "false" && host !== "localhost" && host !== "127.0.0.1");
+
   return mysql.createPool({
-    host: parsed.hostname,
+    host,
     port: parsed.port ? Number(parsed.port) : 3306,
     user: decodeURIComponent(parsed.username),
     password: decodeURIComponent(parsed.password),
@@ -26,6 +35,7 @@ function buildPool(): mysql.Pool {
     waitForConnections: true,
     connectionLimit: 10,
     enableKeepAlive: true,
+    ...(useSsl ? { ssl: { minVersion: "TLSv1.2", rejectUnauthorized: true } } : {}),
   });
 }
 

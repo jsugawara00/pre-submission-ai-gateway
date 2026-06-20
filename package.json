@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
+    "@vercel/blob": "^2.4.1",
     "mysql2": "^3.22.5",
     "next": "16.2.9",
     "react": "19.2.4",

@@ -82,7 +82,9 @@ TypeScript（strict）/ Next.js 16（App Router）/ React 19 / Claude API（`cla
 
 UIライブラリは使わず、素のReact＋CSS Modulesで構築しています（依存最小化方針）。
 
-**一般公開に向けて追加予定**: Vercel（ホスティング）／ Vercel Blob（PDF原本の保管）／ クラウドDB（本番MySQL）／ middleware による認証（企業ごとのアクセスコード）
+**一般公開に向けて追加予定**: Vercel（ホスティング）／ Vercel Blob（PDF原本の保管）／ クラウドDB（**TiDB Serverless**・MySQL互換）／ middleware による認証（企業ごとのアクセスコード）
+
+> 補足（DB）：開発・動作テストはローカルの **MySQL 8（mysql2）** で実施。一般公開でクラウドDBへ移行する際、ローカルと本番の不整合を避けるため、ローカル・本番とも **TiDB Serverless（MySQL互換・無料枠）** に統一する方針（トラブル防止）。動作状況によっては **PlanetScale** 等へ変更の可能性あり。
 
 ## セキュリティ設計
 

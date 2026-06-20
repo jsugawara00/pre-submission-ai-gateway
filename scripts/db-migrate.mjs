@@ -50,13 +50,20 @@ async function main() {
   const sql = readFileSync(join(projectRoot, "src", "lib", "db", "schema.sql"), "utf8");
 
   const parsed = new URL(url);
+  // クラウドDB（TiDB Serverless 等＝localhost以外）はTLS必須のためSSLを有効化する。
+  const host = parsed.hostname;
+  const sslParam = parsed.searchParams.get("ssl");
+  const useSsl =
+    sslParam === "true" ||
+    (sslParam !== "false" && host !== "localhost" && host !== "127.0.0.1");
   const conn = await mysql.createConnection({
-    host: parsed.hostname,
+    host,
     port: parsed.port ? Number(parsed.port) : 3306,
     user: decodeURIComponent(parsed.username),
     password: decodeURIComponent(parsed.password),
     database: parsed.pathname.replace(/^\//, ""),
     multipleStatements: true, // schema.sql の複数CREATEを一括実行するため
+    ...(useSsl ? { ssl: { minVersion: "TLSv1.2", rejectUnauthorized: true } } : {}),
   });
 
   try {

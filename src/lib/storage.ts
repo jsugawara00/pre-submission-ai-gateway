@@ -2,24 +2,22 @@
  * PDFのバリデーションと暗号化保存（CLAUDE.md 第6章）。
  *
  * - 受理はPDFのみ。MIMEタイプ＋マジックバイト検証、サイズ上限20MB/ファイル。
- * - PDF原本はDBに入れない。AES-256-GCMで暗号化してストレージに保存し、
- *   DBにはパスとSHA-256ハッシュのみ持つ（パスとハッシュは applications.documents に記録）。
+ * - PDF原本はDBに入れない。AES-256-GCMで暗号化したうえで Vercel Blob（private）に保存し、
+ *   DBにはBlob URLとSHA-256ハッシュのみ持つ（applications.documents に記録）。
+ * - ストレージはローカル・本番ともVercel Blobに統一する（DBのTiDB統一と同じ思想。
+ *   環境差による不具合を防ぐため）。トークンは環境変数 BLOB_READ_WRITE_TOKEN。
  * - 暗号化鍵はサーバーサイドの環境変数 STORAGE_ENCRYPTION_KEY（32バイト=64桁hex）。
+ *   Blobをprivateにしたうえで暗号文を置く二重防御。
  */
 
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
-import { mkdir, writeFile, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { put, get } from "@vercel/blob";
 
 export const MAX_PDF_BYTES = 20 * 1024 * 1024; // 20MB/ファイル
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12; // GCM推奨
 const TAG_LENGTH = 16;
-
-function getStorageDir(): string {
-  return process.env.STORAGE_DIR ?? join(process.cwd(), "storage", "uploads");
-}
 
 function getKey(): Buffer {
   const hex = process.env.STORAGE_ENCRYPTION_KEY;
@@ -57,13 +55,14 @@ export function validatePdf(data: Buffer, declaredMime: string): PdfValidation {
 }
 
 export interface StoredFile {
+  /** 取得に使うBlob URL。DBの stored_path に保存する。 */
   storedPath: string;
   sha256: string;
 }
 
 /**
- * PDFを暗号化してストレージに保存し、保存パスとSHA-256ハッシュを返す。
- * 保存形式: [IV(12B)] + [認証タグ(16B)] + [暗号文]
+ * PDFを暗号化して Vercel Blob（private）に保存し、Blob URLとSHA-256ハッシュを返す。
+ * 暗号文の形式: [IV(12B)] + [認証タグ(16B)] + [暗号文]
  */
 export async function savePdfEncrypted(data: Buffer, scopeId: string, index: number): Promise<StoredFile> {
   const sha256 = sha256Hex(data);
@@ -73,17 +72,23 @@ export async function savePdfEncrypted(data: Buffer, scopeId: string, index: num
   const tag = cipher.getAuthTag();
   const blob = Buffer.concat([iv, tag, encrypted]);
 
-  const dir = getStorageDir();
-  await mkdir(dir, { recursive: true });
-  const storedPath = join(dir, `${scopeId}_${index}.pdf.enc`);
-  await writeFile(storedPath, blob);
+  // addRandomSuffix: パス衝突を避け、URLからの推測も困難にする。
+  const result = await put(`uploads/${scopeId}/${index}.pdf.enc`, blob, {
+    access: "private",
+    addRandomSuffix: true,
+    contentType: "application/octet-stream",
+  });
 
-  return { storedPath, sha256 };
+  return { storedPath: result.url, sha256 };
 }
 
-/** 暗号化済みPDFを復号して原本のバイト列を返す（レポートでの画像表示等で使用）。 */
+/** 暗号化済みPDFをBlobから取得・復号して原本のバイト列を返す（レポートでの画像表示等で使用）。 */
 export async function readPdfDecrypted(storedPath: string): Promise<Buffer> {
-  const blob = await readFile(storedPath);
+  const result = await get(storedPath, { access: "private" });
+  if (!result || result.statusCode !== 200) {
+    throw new Error("保存済みファイルの取得に失敗しました。");
+  }
+  const blob = Buffer.from(await new Response(result.stream).arrayBuffer());
   const iv = blob.subarray(0, IV_LENGTH);
   const tag = blob.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
   const encrypted = blob.subarray(IV_LENGTH + TAG_LENGTH);
