@@ -297,3 +297,122 @@
     box-shadow: 0 0 26px rgba(54, 214, 194, 0.75);
   }
 }
+
+/* 印刷ボタン（画面のみ。印刷時は @media print で非表示） */
+.printBar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.printButton {
+  font-size: 0.85rem;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--field-border);
+  background: var(--panel);
+  color: var(--foreground);
+  cursor: pointer;
+}
+.printButton:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/*
+ * 印刷レイアウト（「かがみ」＝申告書類群の最上位に載せる紙）。
+ * 方針: 基本は白黒・罫線入り。リスク「重」(high) に関わる文字だけ赤を残す。
+ * 操作UI（ボタン・入力欄）と発光演出は紙に出さない。免責はさりげなく最下部に。
+ * 全コンポーネントが CSS 変数を使うため、:root の変数上書きで一括して白黒化する。
+ */
+@media print {
+  :global(:root) {
+    --background: #fff;
+    --surface: #fff;
+    --foreground: #000;
+    --muted: #333;
+    --border: #000;
+    --field-border: #000;
+    --panel: #fff;
+    --primary: #000;
+    /* high だけ赤を残す（重要箇所を紙でも一目で示す） */
+    --risk-high: #c0001a;
+    --risk-high-bg: #fff;
+    --risk-medium: #000;
+    --risk-medium-bg: #fff;
+    --risk-low: #000;
+    --risk-low-bg: #fff;
+    --verdict-blocked: #000;
+    --verdict-warning: #000;
+    --verdict-pass: #000;
+  }
+  :global(body) {
+    background: #fff;
+    color: #000;
+  }
+  /* 操作UIは紙に残さない（印刷ボタン・NACCS生成・チャット入力など） */
+  :global(button),
+  :global(input),
+  :global(textarea),
+  :global(select) {
+    display: none !important;
+  }
+  .printBar {
+    display: none !important;
+  }
+  /* 発光・点滅・影は印刷に出さない */
+  :global(*) {
+    box-shadow: none !important;
+    animation: none !important;
+    text-shadow: none !important;
+  }
+  @page {
+    margin: 14mm;
+  }
+  .container {
+    max-width: 100%;
+    padding: 0;
+  }
+  /* バナー・カード・行は黒罫線の表形式に。1件が途中で改ページしないようにする */
+  .banner,
+  .card,
+  .row,
+  .matchStatus {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    background: #fff !important;
+  }
+  .sectionTitle {
+    border-bottom: 1.5px solid #000;
+  }
+  .sectionTitleAlert {
+    color: #000;
+  }
+  /* verdict ラベル・リスクバッジ: ベタ塗りをやめ、枠線＋文字で表現 */
+  .verdictLabel {
+    color: #000 !important;
+    background: #fff !important;
+    border: 1px solid #000;
+  }
+  .badge {
+    background: #fff !important;
+    border: 1px solid currentColor;
+  }
+  /* high の項目は赤罫線を残す（かがみで重要箇所が飛び込むように） */
+  .glowHigh {
+    border: 2px solid #c0001a !important;
+  }
+  /* 未確定の発光枠は紙では黒罫線に */
+  .matchPending {
+    border: 1px solid #000 !important;
+  }
+  .matchPending .matchText,
+  .matchPending .matchIcon {
+    color: #000 !important;
+  }
+  /* 免責はさりげなく：最下部に小さく薄いグレー（毎日見る既知情報なので強調しない） */
+  .disclaimer {
+    color: #888 !important;
+    font-size: 0.66rem;
+    border-top: 1px solid #ccc;
+  }
+}

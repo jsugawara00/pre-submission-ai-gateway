@@ -8,11 +8,15 @@ import { MatchStatusBanner } from "./MatchStatusBanner";
 import { FindingCard } from "./FindingCard";
 import { ClarificationPanel } from "@/components/clarification/ClarificationPanel";
 import { NaccsExport } from "./NaccsExport";
+import { PrintButton } from "./PrintButton";
 import styles from "./report.module.css";
 
 export function Report({ result, checkId }: { result: CheckResult; checkId: string }) {
   return (
     <main className={styles.container}>
+      {/* 印刷ボタン（画面のみ。印刷時は非表示）。印刷物は申告書類群の最上位＝かがみとして使う */}
+      <PrintButton />
+
       {/* 照合ステータス（verdictとは別軸）。チャットボットが関わる照合でのみヘッダに出す */}
       {result.clarifications.length > 0 && <MatchStatusBanner summary={result.summary} />}
       <VerdictBanner summary={result.summary} />
