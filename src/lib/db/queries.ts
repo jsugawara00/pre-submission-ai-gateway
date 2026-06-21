@@ -190,6 +190,83 @@ export async function updateCheckResult(result: CheckResult): Promise<void> {
   ]);
 }
 
+/** mutateCheckResultAtomic 用のエラー。route 側で 404/409 にマップする。 */
+export class CheckResultNotFoundError extends Error {
+  constructor() {
+    super("照合結果が見つかりません。");
+    this.name = "CheckResultNotFoundError";
+  }
+}
+
+/** 確定の適用が衝突した（既に確定済み等）。route 側で 409 にマップする。 */
+export class CheckResultConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CheckResultConflictError";
+  }
+}
+
+/**
+ * check_results の result_json を「最新状態を読み直してから」原子的に更新する。
+ * 同一 check_id への同時更新（複数の聞き返し確定が間髪入れず走るケース）での
+ * ロストアップデートを防ぐ。
+ *
+ * - 1本のトランザクション内で `SELECT … FOR UPDATE` により行ロックを取り、
+ *   最新の result_json を mutate に渡す。mutate は最新状態に確定を適用し、
+ *   finalize 済み（summary を埋めた）の CheckResult を返す。
+ * - これにより2件目の確定は1件目の確定済み状態の上に積まれ、両方が合成される。
+ * - mutate が投げた例外はロールバックして伝播する（既に確定済み等の判定に使う）。
+ * - AI 呼び出し等の時間のかかる処理は必ずこの関数の外で済ませ、ロック保持を最短にすること。
+ */
+export async function mutateCheckResultAtomic(
+  checkId: string,
+  mutate: (latest: CheckResult) => CheckResult
+): Promise<CheckResult> {
+  const conn = await getPool().getConnection();
+  try {
+    await conn.beginTransaction();
+    const [rows] = await conn.execute<RowDataPacket[]>(
+      `SELECT result_json FROM check_results WHERE id = ? LIMIT 1 FOR UPDATE`,
+      [checkId]
+    );
+    const row = rows[0];
+    if (!row) {
+      await conn.rollback();
+      throw new CheckResultNotFoundError();
+    }
+    const latest = parseJsonColumn<CheckResult>(row.result_json)!;
+    const updated = mutate(latest);
+    const s = updated.summary;
+    await conn.execute(
+      `UPDATE check_results
+       SET result_json = ?, verdict = ?, high_count = ?, medium_count = ?, low_count = ?,
+           unverified_count = ?, clarifications_open = ?
+       WHERE id = ?`,
+      [
+        JSON.stringify(updated),
+        s.verdict,
+        s.high,
+        s.medium,
+        s.low,
+        s.unverified,
+        s.clarifications_open,
+        checkId,
+      ]
+    );
+    await conn.commit();
+    return updated;
+  } catch (e) {
+    try {
+      await conn.rollback();
+    } catch {
+      /* ロールバック自体の失敗は握り潰す（元のエラーを優先して伝播） */
+    }
+    throw e;
+  } finally {
+    conn.release();
+  }
+}
+
 export async function getCheckResultById(checkId: string): Promise<CheckResultRow | null> {
   const sql = `SELECT * FROM check_results WHERE id = ? LIMIT 1`;
   const [rows] = await getPool().execute<RowDataPacket[]>(sql, [checkId]);

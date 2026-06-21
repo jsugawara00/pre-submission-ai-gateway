@@ -11,8 +11,10 @@
 import { NextResponse } from "next/server";
 import {
   getCheckResultById,
-  updateCheckResult,
+  mutateCheckResultAtomic,
   insertAuditLog,
+  CheckResultNotFoundError,
+  CheckResultConflictError,
 } from "@/lib/db/queries";
 import { finalizeCheckResult } from "@/lib/engine/verdict";
 import {
@@ -71,23 +73,29 @@ export async function POST(
     // 閉じ、該当項目を「照合できなかった項目」に残して verdict を確定可能にする（行き止まり防止）。
     // AI は呼ばないため API を消費しない。再確認の上限に達した後でも使える。
     if (unresolved) {
-      const fieldKey = clarification.field_key ?? `doc_type_${clarification.doc_id}`;
-      const updated: CheckResult = {
-        ...result,
-        clarifications: result.clarifications.map((c) =>
-          c.clarification_id === clarificationId ? { ...c, status: "resolved" as const } : c
-        ),
-        unverified: [
-          ...result.unverified,
-          {
-            field_key: fieldKey,
-            field_label: clarification.field_label,
-            reason: `人手で確認できなかったため未確定のまま確定しました（${clarification.doc_id}）。`,
-          },
-        ],
-      };
-      const finalized = finalizeCheckResult(updated, { regenerateHeadline: true });
-      await updateCheckResult(finalized);
+      // 最新状態を読み直して原子的に適用（同時確定でのロストアップデート防止）。
+      const finalized = await mutateCheckResultAtomic(checkId, (latest) => {
+        const c = latest.clarifications.find((x) => x.clarification_id === clarificationId);
+        if (!c) throw new CheckResultNotFoundError();
+        if (c.status === "resolved")
+          throw new CheckResultConflictError("この確認項目はすでに確定済みです。");
+        const fieldKey = c.field_key ?? `doc_type_${c.doc_id}`;
+        const updated: CheckResult = {
+          ...latest,
+          clarifications: latest.clarifications.map((x) =>
+            x.clarification_id === clarificationId ? { ...x, status: "resolved" as const } : x
+          ),
+          unverified: [
+            ...latest.unverified,
+            {
+              field_key: fieldKey,
+              field_label: c.field_label,
+              reason: `人手で確認できなかったため未確定のまま確定しました（${c.doc_id}）。`,
+            },
+          ],
+        };
+        return finalizeCheckResult(updated, { regenerateHeadline: true });
+      });
       await insertAuditLog({
         action: "clarification_resolve",
         applicationId: row.application_id,
@@ -135,31 +143,37 @@ export async function POST(
       const resolveMessage =
         reply.message?.trim() || `書類種別を「${confirmedLabel}」で確定しました。`;
 
-      const updated: CheckResult = {
-        ...result,
-        documents: result.documents.map((d) =>
-          d.doc_id === clarification.doc_id
-            ? {
-                ...d,
-                detected_type: typeKey,
-                detected_type_label: reply.excluded
-                  ? `${d.detected_type_label}（照合から除外）`
-                  : confirmedLabel,
-                confidence: 1,
-                summary: reply.excluded
-                  ? `${d.summary}（人間の確認により照合対象から除外）`
-                  : d.summary,
-              }
-            : d
-        ),
-        clarifications: result.clarifications.map((c) =>
-          c.clarification_id === clarificationId ? { ...c, status: "resolved" as const } : c
-        ),
-        findings: [...result.findings, ...reply.new_findings],
-      };
-      // 確定後は headline を作り直す（初回照合時の「種別確認が必要」等の文言が残らないように）
-      const finalized = finalizeCheckResult(updated, { regenerateHeadline: true });
-      await updateCheckResult(finalized);
+      // 最新状態を読み直して原子的に適用（同時確定でのロストアップデート防止）。
+      const finalized = await mutateCheckResultAtomic(checkId, (latest) => {
+        const c = latest.clarifications.find((x) => x.clarification_id === clarificationId);
+        if (!c) throw new CheckResultNotFoundError();
+        if (c.status === "resolved")
+          throw new CheckResultConflictError("この確認項目はすでに確定済みです。");
+        const updated: CheckResult = {
+          ...latest,
+          documents: latest.documents.map((d) =>
+            d.doc_id === c.doc_id
+              ? {
+                  ...d,
+                  detected_type: typeKey,
+                  detected_type_label: reply.excluded
+                    ? `${d.detected_type_label}（照合から除外）`
+                    : confirmedLabel,
+                  confidence: 1,
+                  summary: reply.excluded
+                    ? `${d.summary}（人間の確認により照合対象から除外）`
+                    : d.summary,
+                }
+              : d
+          ),
+          clarifications: latest.clarifications.map((x) =>
+            x.clarification_id === clarificationId ? { ...x, status: "resolved" as const } : x
+          ),
+          findings: [...latest.findings, ...reply.new_findings],
+        };
+        // 確定後は headline を作り直す（初回照合時の「種別確認が必要」等の文言が残らないように）
+        return finalizeCheckResult(updated, { regenerateHeadline: true });
+      });
 
       await insertAuditLog({
         action: "clarification_resolve",
@@ -200,16 +214,22 @@ export async function POST(
 
     // accepted: 確定処理
     const confirmedValue = reply.confirmed_value ?? answer;
-    const updated: CheckResult = {
-      ...result,
-      clarifications: result.clarifications.map((c) =>
-        c.clarification_id === clarificationId ? { ...c, status: "resolved" as const } : c
-      ),
-      findings: reply.new_finding ? [...result.findings, reply.new_finding] : result.findings,
-    };
-    // 確定後は headline を作り直す（初回照合時の「確認が必要」等の文言が残らないように）
-    const finalized = finalizeCheckResult(updated, { regenerateHeadline: true });
-    await updateCheckResult(finalized);
+    // 最新状態を読み直して原子的に適用（同時確定でのロストアップデート防止）。
+    const finalized = await mutateCheckResultAtomic(checkId, (latest) => {
+      const c = latest.clarifications.find((x) => x.clarification_id === clarificationId);
+      if (!c) throw new CheckResultNotFoundError();
+      if (c.status === "resolved")
+        throw new CheckResultConflictError("この確認項目はすでに確定済みです。");
+      const updated: CheckResult = {
+        ...latest,
+        clarifications: latest.clarifications.map((x) =>
+          x.clarification_id === clarificationId ? { ...x, status: "resolved" as const } : x
+        ),
+        findings: reply.new_finding ? [...latest.findings, reply.new_finding] : latest.findings,
+      };
+      // 確定後は headline を作り直す（初回照合時の「確認が必要」等の文言が残らないように）
+      return finalizeCheckResult(updated, { regenerateHeadline: true });
+    });
 
     const conversationLog = [
       ...history,
@@ -238,6 +258,13 @@ export async function POST(
       summary: finalized.summary,
     });
   } catch (err) {
+    if (err instanceof CheckResultNotFoundError) {
+      return NextResponse.json({ error: "照合結果が見つかりません。" }, { status: 404 });
+    }
+    if (err instanceof CheckResultConflictError) {
+      // 別の確定と競合（多くは「すでに確定済み」）。クライアントは再取得すれば最新が見える。
+      return NextResponse.json({ error: err.message }, { status: 409 });
+    }
     if (err instanceof ClarifyError) {
       return NextResponse.json(
         { error: "確認応答を正しく取得できませんでした。時間をおいて再度お試しください。" },
