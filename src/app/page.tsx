@@ -1,10 +1,33 @@
 /** トップ（コンセプト選択）。デザインB案「ライトテーブル照合」。事後＝Phase1／事前＝Phase2。 */
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { ACCESS_CODE_COOKIE } from "@/lib/access-config";
 import styles from "./page.module.css";
 
-export default function Home() {
+export default async function Home() {
+  // トップは公開だが、認証状態を画面に明示する（未認証＝照合不可を認知させる）。
+  // 判定はサーバー側で Cookie の有無のみを見る（コード値はクライアントに渡さない）。
+  const cookieStore = await cookies();
+  const isAuthed = Boolean(cookieStore.get(ACCESS_CODE_COOKIE)?.value);
+
   return (
     <main className={styles.page}>
+      {isAuthed ? (
+        <div className={styles.authBar}>
+          <span className={styles.authChip}>✓ 認証済み</span>
+        </div>
+      ) : (
+        <div className={styles.authNotice} role="status">
+          <p className={styles.authNoticeText}>
+            <span className={styles.authNoticeBadge}>● 未認証</span>
+            照合機能（事後・事前チェック）のご利用にはアクセスコードでの認証が必要です。
+          </p>
+          <Link href="/gate" className={styles.authNoticeBtn}>
+            認証する →
+          </Link>
+        </div>
+      )}
+
       <section className={styles.hero}>
         <div className={styles.heroText}>
           <p className={styles.eyebrow}>申請前AI検問所</p>

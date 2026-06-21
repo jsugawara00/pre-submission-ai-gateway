@@ -1,13 +1,10 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./gate.module.css";
 
 function GateForm() {
-  const router = useRouter();
-  const params = useSearchParams();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -28,16 +25,17 @@ function GateForm() {
         body: JSON.stringify({ code: trimmed }),
       });
       if (res.ok) {
-        const next = params.get("next") || "/post-check";
-        router.push(next);
-        router.refresh();
-      } else {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "認証に失敗しました。");
+        // 認証成功 → トップへハードナビゲーション。
+        // router.push + refresh の競合（遷移が中断されゲートに留まる不具合）を避け、
+        // Cookie を確実に反映した状態で再評価させる。ローディング表示のまま遷移する。
+        window.location.assign("/");
+        return;
       }
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(data.error ?? "認証に失敗しました。");
+      setLoading(false);
     } catch {
-      setError("通信エラーが発生しました。時間をおいて再度お試しください。");
-    } finally {
+      setError("通信エラーが発生しました。通信環境をご確認のうえ、時間をおいて再度お試しください。");
       setLoading(false);
     }
   }

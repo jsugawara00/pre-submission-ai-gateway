@@ -29,7 +29,10 @@ export async function POST(request: Request): Promise<Response> {
     active = await isAccessCodeActive(code);
   } catch (err) {
     console.error("[gate] 認証処理エラー:", err);
-    return NextResponse.json({ error: "認証処理中にエラーが発生しました。" }, { status: 500 });
+    return NextResponse.json(
+      { error: "認証処理中にエラーが発生しました。お手数ですがアプリの管理者にお問い合わせください。" },
+      { status: 500 }
+    );
   }
 
   if (!active) {

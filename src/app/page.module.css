@@ -22,6 +22,75 @@
   margin: 0 auto;
 }
 
+/* 認証状態の表示。未認証は明示バナー（注意色）、認証済みは控えめなチップ。 */
+.authNotice {
+  max-width: 1080px;
+  margin: 18px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 13px 18px;
+  border: 1px solid rgba(232, 163, 61, 0.35);
+  border-radius: 12px;
+  background: rgba(232, 163, 61, 0.08);
+}
+.authNoticeText {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 13.5px;
+  color: #d7c6a6;
+  line-height: 1.6;
+}
+.authNoticeBadge {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--warn);
+  white-space: nowrap;
+}
+.authNoticeBtn {
+  flex-shrink: 0;
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #16242c;
+  background: var(--warn);
+  padding: 8px 16px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: filter 0.15s, transform 0.15s;
+}
+.authNoticeBtn:hover {
+  text-decoration: none;
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.authNoticeBtn:focus-visible {
+  outline: 2px solid var(--glow);
+  outline-offset: 3px;
+}
+.authBar {
+  max-width: 1080px;
+  margin: 18px auto 0;
+  display: flex;
+  justify-content: flex-end;
+}
+.authChip {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--glow);
+  border: 1px solid rgba(54, 214, 194, 0.4);
+  background: rgba(54, 214, 194, 0.08);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
 /* ヒーロー */
 .hero {
   display: grid;
