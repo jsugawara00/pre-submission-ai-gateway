@@ -17,6 +17,10 @@ export default function Footer() {
           <a href={GITHUB_URL} target="_blank" rel="noreferrer">
             GitHub
           </a>
+          <span className={styles.sep} aria-hidden="true">
+            ・
+          </span>
+          <a href="mailto:jumpdevelop00@gmail.com">お問い合わせ</a>
         </nav>
       </div>
       <p className={styles.disclaimer}>
