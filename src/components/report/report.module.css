@@ -87,6 +87,12 @@
   line-height: 1.7;
   color: var(--muted);
 }
+.disclaimerLine {
+  margin: 0;
+}
+.disclaimerLine + .disclaimerLine {
+  margin-top: 6px;
+}
 
 /* リスク／確信度バッジ */
 .badge {
@@ -393,9 +399,23 @@
     background: #fff !important;
     border: 1px solid #000;
   }
+  /* 「申告不可」(blocked)・「要注意」(warning) は囲い線を赤に。文字は黒のまま */
+  .verdictBlocked,
+  .verdictWarning {
+    border-color: #c0001a !important;
+  }
+  /* 「確認が必要な項目が〇件…」の見出しは赤文字に（要確認状態のときのみ付与） */
+  .headlineAlert {
+    color: #c0001a !important;
+  }
   .badge {
     background: #fff !important;
     border: 1px solid currentColor;
+  }
+  /* 高リスクバッジは囲い線のみ赤・文字は黒 */
+  .high {
+    color: #000 !important;
+    border-color: #c0001a !important;
   }
   /* high の項目は赤罫線を残す（かがみで重要箇所が飛び込むように） */
   .glowHigh {
@@ -414,5 +434,12 @@
     color: #888 !important;
     font-size: 0.66rem;
     border-top: 1px solid #ccc;
+  }
+  /* かがみには出さない: 全ページ共通フッター（ブランド/リンク/汎用性注記）と NACCS出力UI */
+  :global(footer) {
+    display: none !important;
+  }
+  .screenOnly {
+    display: none !important;
   }
 }

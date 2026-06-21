@@ -27,7 +27,13 @@ export function VerdictBanner({ summary }: { summary: CheckResult["summary"] }) 
       <div className={styles.bannerTop}>
         <span className={`${styles.verdictLabel} ${LABEL_CLASS[verdict]}`}>{VERDICT_LABEL[verdict]}</span>
       </div>
-      <p className={styles.headline}>{summary.headline}</p>
+      <p
+        className={`${styles.headline}${
+          summary.clarifications_open > 0 ? ` ${styles.headlineAlert}` : ""
+        }`}
+      >
+        {summary.headline}
+      </p>
       <div className={styles.counts}>
         <span>高リスク <strong>{summary.high}</strong></span>
         <span>中リスク <strong>{summary.medium}</strong></span>

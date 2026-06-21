@@ -75,12 +75,19 @@ export function Report({ result, checkId }: { result: CheckResult; checkId: stri
         )}
       </section>
 
-      {/* NACCS（IDA）疑似サマリ出力（両モード共通。form_inputが無ければサーバーが出力対象なしを返す） */}
-      <NaccsExport checkId={checkId} />
+      {/* NACCS（IDA）疑似サマリ出力。画面のみの機能で、印刷（かがみ）には出さない */}
+      <div className={styles.screenOnly}>
+        <NaccsExport checkId={checkId} />
+      </div>
 
-      <p className={styles.disclaimer}>
-        ※ 照合精度を支える専用ルールは、ここで一例とする輸入申告業務向けに用意しています。輸入申告以外のチェックでは正しい結果を保証できませんが、仕組み自体は汎用のため一定の精度でお試しいただけます。
-      </p>
+      <div className={styles.disclaimer}>
+        <p className={styles.disclaimerLine}>
+          ※ 照合精度を支える専用ルールは、ここで一例とする輸入申告業務向けに用意しています。輸入申告以外のチェックでは正しい結果を保証できませんが、仕組み自体は汎用のため一定の精度でお試しいただけます。
+        </p>
+        <p className={styles.disclaimerLine}>
+          ※ AIによる照合は完全ではありません。本レポートは確認を補助するものであり、申告の最終的な判断は利用者ご自身が行ってください。
+        </p>
+      </div>
     </main>
   );
 }
