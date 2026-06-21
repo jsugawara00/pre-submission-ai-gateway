@@ -24,6 +24,9 @@ export default function PostCheckPage() {
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // レポートへの遷移開始フラグ。push 後にレポートが用意できるまで前画面（フォーム）が
+  // 居残る「残像」を防ぐため、遷移を始めた瞬間にきれいな受け渡し画面へ切り替える。
+  const [navigating, setNavigating] = useState(false);
 
   function addFiles(zone: Zone, incoming: FileList | null) {
     if (!incoming) return;
@@ -84,6 +87,8 @@ export default function PostCheckPage() {
         setSubmitting(false);
         return;
       }
+      // 遷移開始の瞬間に前画面を畳む（残像防止）。push 後の読み込みは受け渡し画面で覆う。
+      setNavigating(true);
       router.push(`/report/${data.checkId}`);
     } catch {
       setError("通信エラーが発生しました。接続を確認してください。");
@@ -142,6 +147,19 @@ export default function PostCheckPage() {
             ))}
           </ul>
         )}
+      </div>
+    );
+  }
+
+  // 遷移開始後はフォームを出さず、レポート表示までの受け渡し画面のみを出す（残像防止）。
+  // loading.tsx と同じ ScanningIndicator なので、照合中→受け渡し→レポートが切れ目なく続く。
+  if (navigating) {
+    return (
+      <div className={styles.container}>
+        <ScanningIndicator
+          label="レポートを開いています"
+          note="照合結果を表示します。まもなく切り替わります。"
+        />
       </div>
     );
   }
