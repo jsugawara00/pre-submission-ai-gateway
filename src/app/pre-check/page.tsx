@@ -268,7 +268,7 @@ export default function PreCheckPage() {
       {error && <p className={styles.error}>{error}</p>}
       {submitting && (
         <ScanningIndicator
-          label="⏳ 照合中"
+          label=""
           note="AIが書類を読み取っています（資料が多いと数十秒）。ブレークタイムにどうぞ。"
         />
       )}

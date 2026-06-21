@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./post-check.module.css";
 import ScanningIndicator from "@/components/ScanningIndicator/ScanningIndicator";
+import ReportLoading from "@/components/ReportLoading/ReportLoading";
 
 const MAX_MB = 20;
 
@@ -152,16 +153,10 @@ export default function PostCheckPage() {
   }
 
   // 遷移開始後はフォームを出さず、レポート表示までの受け渡し画面のみを出す（残像防止）。
-  // loading.tsx と同じ ScanningIndicator なので、照合中→受け渡し→レポートが切れ目なく続く。
+  // report の loading.tsx と同一の ReportLoading なので、照合中→準備中→レポートが
+  // 枠の位置ズレもなく切れ目なく続く。
   if (navigating) {
-    return (
-      <div className={styles.container}>
-        <ScanningIndicator
-          label="レポートを開いています"
-          note="照合結果を表示します。まもなく切り替わります。"
-        />
-      </div>
-    );
+    return <ReportLoading />;
   }
 
   return (
@@ -197,7 +192,7 @@ export default function PostCheckPage() {
         {error && <p className={styles.error}>{error}</p>}
         {submitting && (
           <ScanningIndicator
-            label="⏳ 照合中"
+            label=""
             note="AIが書類を読み取っています（資料が多いと数十秒）。ブレークタイムにどうぞ。"
           />
         )}

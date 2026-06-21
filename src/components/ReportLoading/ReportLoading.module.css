@@ -1,0 +1,88 @@
+/* レポート準備中の待機画面。インジケーターを画面の上下中央に配置し、
+   「ポツンと浮いた残像」ではなく意図された待機画面に見せる。
+   発光・高速アニメは使わない（明るい動く要素の焼き付き＝残像を避ける）。 */
+.wrap {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+/* ゆっくり明滅する点（発光は使わず、不透明度と微小な拡縮だけ＝焼き付かない） */
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.label {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: 0.04em;
+}
+
+/* 細い控えめの不定バー（低コントラスト・glow無し＝焼き付かない） */
+.bar {
+  position: relative;
+  width: 200px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(120, 160, 170, 0.16);
+  overflow: hidden;
+}
+.barFill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 36%;
+  border-radius: 999px;
+  background: rgba(54, 214, 194, 0.55);
+  animation: slide 1.8s ease-in-out infinite;
+}
+@keyframes slide {
+  from {
+    left: -40%;
+  }
+  to {
+    left: 104%;
+  }
+}
+
+.note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* アニメーションを抑える設定では静止表示（控えめのまま） */
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+    opacity: 0.9;
+  }
+  .barFill {
+    animation: none;
+    left: 0;
+    width: 100%;
+    opacity: 0.5;
+  }
+}

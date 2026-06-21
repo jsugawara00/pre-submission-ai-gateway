@@ -44,8 +44,9 @@
   right: 0;
   top: 0;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #38bdf8 18%, #67e8f9 50%, #38bdf8 82%, transparent);
-  box-shadow: 0 0 12px 2px rgba(56, 189, 248, 0.75), 0 0 28px 6px rgba(56, 189, 248, 0.35);
+  /* 発光を大幅に弱める（消えた瞬間の焼き付き＝残像を防ぐ）。走査線自体は残す。 */
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.5) 28%, rgba(103, 232, 249, 0.62) 50%, rgba(56, 189, 248, 0.5) 72%, transparent);
+  box-shadow: 0 0 6px 1px rgba(56, 189, 248, 0.26);
   animation: scan 2.1s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
 }
 

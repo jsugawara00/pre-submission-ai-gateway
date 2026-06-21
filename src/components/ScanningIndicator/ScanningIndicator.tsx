@@ -37,7 +37,9 @@ export default function ScanningIndicator({
       </div>
 
       <div className={styles.caption}>
-        <span className={styles.label}>{label}…</span>
+        {/* label が空なら表示しない（呼び出し側のボタン等と「照合中…」が重複するのを避ける）。
+            経過秒数のタイマーは「フリーズしていない」証明として残す。 */}
+        {label ? <span className={styles.label}>{label}…</span> : null}
         <span className={styles.timer}>{sec}s</span>
       </div>
 
