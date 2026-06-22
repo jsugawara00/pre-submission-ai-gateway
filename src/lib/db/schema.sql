@@ -69,3 +69,26 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   KEY idx_audit_logs_check_id (check_id),
   KEY idx_audit_logs_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 5) inbound_documents（メール取込み — Phase 3）
+-- 専用アドレスへ転送されたメールの添付PDFを受信・保管する。1メール=1バッチ(batch_id)、添付1つ=1行。
+-- 役割(target/reference)は受信トレイで人が割り当てる（未割当はNULL）。原本はDBに入れず暗号化保存しパス＋SHA-256のみ。
+CREATE TABLE IF NOT EXISTS inbound_documents (
+  id             VARCHAR(48)  NOT NULL,                 -- 例: inb_20260622_0001
+  batch_id       VARCHAR(48)  NOT NULL,                 -- 同一メール由来をまとめるID（1メール=1バッチ）
+  sender         VARCHAR(320) NULL,                     -- 送信元メールアドレス（許可判定・監査用）
+  subject        VARCHAR(512) NULL,                     -- メール件名（受信トレイ表示用）
+  original_name  VARCHAR(255) NOT NULL,                 -- 添付ファイル名
+  stored_path    VARCHAR(512) NOT NULL,                 -- 暗号化保存先パス
+  sha256         CHAR(64)     NOT NULL,                 -- 改竄検知
+  size_bytes     INT          NOT NULL,
+  role           ENUM('target','reference') NULL,       -- 受信トレイで人が割当（未割当はNULL）
+  status         VARCHAR(32)  NOT NULL DEFAULT 'pending', -- pending / assigned / checked / discarded
+  application_id VARCHAR(40)  NULL,                      -- 照合に回した applications.id（照合後）
+  received_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_inbound_batch (batch_id),
+  KEY idx_inbound_status (status),
+  KEY idx_inbound_received_at (received_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

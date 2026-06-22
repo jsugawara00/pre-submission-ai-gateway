@@ -12,8 +12,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ACCESS_CODE_COOKIE } from "@/lib/access-config";
 
-const PROTECTED_PAGE_PREFIXES = ["/post-check", "/pre-check", "/report"];
-const PROTECTED_API_PREFIXES = ["/api/checks", "/api/clarifications"];
+const PROTECTED_PAGE_PREFIXES = ["/post-check", "/pre-check", "/report", "/inbox"];
+// 注: /api/inbound-email（メール受信 Webhook）は M2M のためここに含めない（共有シークレットで保護）。
+const PROTECTED_API_PREFIXES = ["/api/checks", "/api/clarifications", "/api/inbox"];
 
 export function proxy(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl;
@@ -38,7 +39,9 @@ export const config = {
     "/post-check/:path*",
     "/pre-check/:path*",
     "/report/:path*",
+    "/inbox/:path*",
     "/api/checks/:path*",
     "/api/clarifications/:path*",
+    "/api/inbox/:path*",
   ],
 };

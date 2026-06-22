@@ -171,6 +171,7 @@ export default function PostCheckPage() {
 
       <p className={styles.channelNote}>
         📥 <strong>取り込み元は問いません。</strong>メールの添付や複合機（scan to email）で受け取ったPDFも、いったん保存して以下の欄にドラッグ＆ドロップ、または欄をクリックして選択するだけで取り込めます。
+        メールを転送して自動で取り込む <Link href="/inbox">受信トレイ →</Link> もあります。
       </p>
 
       <div className={styles.card}>

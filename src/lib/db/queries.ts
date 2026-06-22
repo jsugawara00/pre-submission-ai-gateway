@@ -60,7 +60,10 @@ function todayStamp(): string {
  * 当日分の連番IDを生成する。MVPでは同時実行が稀なためCOUNTで採番する
  * （厳密な一意採番が必要になればシーケンステーブル等へ移行）。
  */
-async function generateDailyId(table: "applications" | "check_results", prefix: string): Promise<string> {
+async function generateDailyId(
+  table: "applications" | "check_results" | "inbound_documents",
+  prefix: string
+): Promise<string> {
   const stamp = todayStamp();
   const like = `${prefix}_${stamp}_%`;
   const sql = `SELECT COUNT(*) AS c FROM ${table} WHERE id LIKE ?`;
@@ -403,4 +406,86 @@ export async function setAccessCodeDisabled(code: string, disabled: boolean): Pr
   const sql = `UPDATE access_codes SET disabled = ? WHERE code = ?`;
   const [res] = await getPool().execute<ResultSetHeader>(sql, [disabled ? 1 : 0, code]);
   return res.affectedRows === 1;
+}
+
+// --- inbound_documents（メール取込み Phase 3） ---
+
+export interface InboundDocumentRow {
+  id: string;
+  batch_id: string;
+  sender: string | null;
+  subject: string | null;
+  original_name: string;
+  stored_path: string;
+  sha256: string;
+  size_bytes: number;
+  role: "target" | "reference" | null;
+  status: string; // pending / assigned / checked / discarded
+  application_id: string | null;
+  received_at: Date;
+  updated_at: Date;
+}
+
+export interface InsertInboundDocumentInput {
+  batchId: string;
+  sender?: string | null;
+  subject?: string | null;
+  originalName: string;
+  storedPath: string;
+  sha256: string;
+  sizeBytes: number;
+}
+
+/** 受信した添付PDF1件を保存する（原本はストレージ側・ここはメタのみ）。採番した id を返す。 */
+export async function insertInboundDocument(input: InsertInboundDocumentInput): Promise<string> {
+  const id = await generateDailyId("inbound_documents", "inb");
+  const sql = `
+    INSERT INTO inbound_documents
+      (id, batch_id, sender, subject, original_name, stored_path, sha256, size_bytes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  await getPool().execute(sql, [
+    id,
+    input.batchId,
+    input.sender ?? null,
+    input.subject ?? null,
+    input.originalName,
+    input.storedPath,
+    input.sha256,
+    input.sizeBytes,
+  ]);
+  return id;
+}
+
+/** 受信トレイ用: 未処理（pending）の受信物を受信順に返す。 */
+export async function listPendingInboundDocuments(): Promise<InboundDocumentRow[]> {
+  const sql = `SELECT * FROM inbound_documents WHERE status = 'pending' ORDER BY received_at ASC, id ASC`;
+  const [rows] = await getPool().execute<RowDataPacket[]>(sql);
+  return rows as InboundDocumentRow[];
+}
+
+/** 指定IDの受信物を取得する（照合実行時に原本を読み出すため）。 */
+export async function getInboundDocumentsByIds(ids: string[]): Promise<InboundDocumentRow[]> {
+  if (ids.length === 0) return [];
+  // プレースホルダはID件数ぶんの "?" のみを動的生成（値は必ずパラメータで渡す＝SQLインジェクション安全）。
+  const placeholders = ids.map(() => "?").join(", ");
+  const sql = `SELECT * FROM inbound_documents WHERE id IN (${placeholders})`;
+  const [rows] = await getPool().execute<RowDataPacket[]>(sql, ids);
+  return rows as InboundDocumentRow[];
+}
+
+/** 受信物を照合に回した状態に更新する（役割確定＋status=checked＋application紐付け）。 */
+export async function markInboundChecked(
+  id: string,
+  role: "target" | "reference",
+  applicationId: string
+): Promise<void> {
+  const sql = `UPDATE inbound_documents SET role = ?, status = 'checked', application_id = ? WHERE id = ?`;
+  await getPool().execute(sql, [role, applicationId, id]);
+}
+
+/** 受信物を破棄（照合に使わない）。受信トレイの掃除用。 */
+export async function discardInboundDocument(id: string): Promise<void> {
+  const sql = `UPDATE inbound_documents SET status = 'discarded' WHERE id = ?`;
+  await getPool().execute(sql, [id]);
 }
