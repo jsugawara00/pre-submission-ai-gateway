@@ -13,6 +13,7 @@ import { RiskBadge } from "@/components/report/RiskBadge";
 import { CORE_FIELDS, LINE_FIELDS, LINE_ITEM_COUNT, lineKey } from "./fields";
 import styles from "./pre-check.module.css";
 import ScanningIndicator from "@/components/ScanningIndicator/ScanningIndicator";
+import TrialLimitDialog from "@/components/TrialLimitDialog";
 
 const MAX_MB = 20;
 const VERDICT_LABEL: Record<Verdict, string> = { blocked: "申告不可", warning: "要注意", pass: "問題なし" };
@@ -26,6 +27,7 @@ export default function PreCheckPage() {
   const [result, setResult] = useState<CheckResult | null>(null);
   const [checkId, setCheckId] = useState<string | null>(null);
   const [registered, setRegistered] = useState(false);
+  const [trialLimit, setTrialLimit] = useState(false);
 
   // field_key → findings のマッピング（インラインエラー用）
   const findingsByKey = useMemo(() => {
@@ -110,7 +112,8 @@ export default function PreCheckPage() {
       const res = await fetch("/api/checks", { method: "POST", body });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? "照合に失敗しました。");
+        if (res.status === 429) setTrialLimit(true);
+        else setError(data.error ?? "照合に失敗しました。");
         setSubmitting(false);
         return;
       }
@@ -300,6 +303,8 @@ export default function PreCheckPage() {
           {registered && <p className={styles.registered}>✓ 登録しました（疑似）。実際のNACCS送信は行いません。</p>}
         </>
       )}
+
+      <TrialLimitDialog open={trialLimit} onClose={() => setTrialLimit(false)} />
     </div>
   );
 }

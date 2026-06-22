@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS check_results (
 CREATE TABLE IF NOT EXISTS access_codes (
   code        VARCHAR(64)  NOT NULL,                  -- アクセスコード（企業ごとに発行）
   label       VARCHAR(255) NULL,                       -- 企業名などのメモ（運用識別用）
-  max_uses    INT          NOT NULL DEFAULT 30,        -- 累計上限（照合回数）
+  max_uses    INT          NOT NULL DEFAULT 2,         -- 累計上限（照合回数）。標準はサンプル動作確認用に2回
   used_count  INT          NOT NULL DEFAULT 0,         -- 使用済み回数
   disabled    TINYINT(1)   NOT NULL DEFAULT 0,         -- 無効化フラグ（1で即時停止）
   created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,

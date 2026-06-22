@@ -6,8 +6,8 @@
 /** 認証済みアクセスコードを保持する Cookie 名（httpOnly で発行する）。 */
 export const ACCESS_CODE_COOKIE = "ac_session";
 
-/** コード発行時の既定の累計上限（回数）。発行スクリプトの --max 省略時に使う。 */
-export const DEFAULT_MAX_USES = 30;
+/** コード発行時の既定の累計上限（回数）。標準はサンプル動作確認用に2回（API課金が絡むため）。 */
+export const DEFAULT_MAX_USES = 2;
 
 /** 照合をサーバー側で打ち切る理由。 */
 export type AccessDenialReason = "not_found" | "disabled" | "limit_reached";

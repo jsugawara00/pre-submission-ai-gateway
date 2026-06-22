@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import ScanningIndicator from "@/components/ScanningIndicator/ScanningIndicator";
 import ReportLoading from "@/components/ReportLoading/ReportLoading";
+import TrialLimitDialog from "@/components/TrialLimitDialog";
 import styles from "@/app/inbox/inbox.module.css";
 
 export interface InboxItem {
@@ -34,6 +35,7 @@ export default function InboxClient({ items }: { items: InboxItem[] }) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [navigating, setNavigating] = useState(false);
+  const [trialLimit, setTrialLimit] = useState(false);
 
   // 同一メール（batch）ごとにまとめて表示する
   const batches = useMemo(() => {
@@ -73,7 +75,8 @@ export default function InboxClient({ items }: { items: InboxItem[] }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? "照合に失敗しました。時間をおいて再度お試しください。");
+        if (res.status === 429) setTrialLimit(true);
+        else setError(data.error ?? "照合に失敗しました。時間をおいて再度お試しください。");
         setSubmitting(false);
         return;
       }
@@ -165,6 +168,8 @@ export default function InboxClient({ items }: { items: InboxItem[] }) {
       <button type="button" className={styles.submit} onClick={handleSubmit} disabled={submitting}>
         {submitting ? "照合中…" : "選んだ書類で照合する"}
       </button>
+
+      <TrialLimitDialog open={trialLimit} onClose={() => setTrialLimit(false)} />
     </>
   );
 }

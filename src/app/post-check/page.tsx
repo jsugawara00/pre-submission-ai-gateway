@@ -12,6 +12,7 @@ import Link from "next/link";
 import styles from "./post-check.module.css";
 import ScanningIndicator from "@/components/ScanningIndicator/ScanningIndicator";
 import ReportLoading from "@/components/ReportLoading/ReportLoading";
+import TrialLimitDialog from "@/components/TrialLimitDialog";
 
 const MAX_MB = 20;
 
@@ -28,6 +29,8 @@ export default function PostCheckPage() {
   // レポートへの遷移開始フラグ。push 後にレポートが用意できるまで前画面（フォーム）が
   // 居残る「残像」を防ぐため、遷移を始めた瞬間にきれいな受け渡し画面へ切り替える。
   const [navigating, setNavigating] = useState(false);
+  // お試し回数の上限（429）に達した時に出す案内ダイアログ。
+  const [trialLimit, setTrialLimit] = useState(false);
 
   function addFiles(zone: Zone, incoming: FileList | null) {
     if (!incoming) return;
@@ -84,7 +87,8 @@ export default function PostCheckPage() {
       const res = await fetch("/api/checks", { method: "POST", body });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? "照合に失敗しました。時間をおいて再度お試しください。");
+        if (res.status === 429) setTrialLimit(true);
+        else setError(data.error ?? "照合に失敗しました。時間をおいて再度お試しください。");
         setSubmitting(false);
         return;
       }
@@ -169,10 +173,14 @@ export default function PostCheckPage() {
         照合の<strong>基準となる申告帳票</strong>を「チェック対象」に、突き合わせる<strong>元資料</strong>を「関係書類」に分けて入れてください。AIがチェック対象を基準に転記ミスや資料間の矛盾を照合します。
       </p>
 
-      <p className={styles.channelNote}>
-        📥 <strong>取り込み元は問いません。</strong>メールの添付や複合機（scan to email）で受け取ったPDFも、いったん保存して以下の欄にドラッグ＆ドロップ、または欄をクリックして選択するだけで取り込めます。
-        メールを転送して自動で取り込む <Link href="/inbox">受信トレイ →</Link> もあります。
-      </p>
+      <div className={styles.channelNote}>
+        📥 <strong>取り込み元は問いません。</strong>メールの添付や複合機（scan to email）で受け取ったPDFも、いったん保存して以下の欄にドラッグ＆ドロップ、または欄をクリックして選択するだけで取り込めます。メールを転送して自動で取り込むこともできます。
+        <span className={styles.inboxLine}>
+          <Link href="/inbox" className={styles.inboxButton}>
+            ✉ 受信トレイを開く →
+          </Link>
+        </span>
+      </div>
 
       <div className={styles.card}>
         <div className={styles.zones}>
@@ -202,6 +210,8 @@ export default function PostCheckPage() {
           {submitting ? "照合中…" : "照合を実行する"}
         </button>
       </div>
+
+      <TrialLimitDialog open={trialLimit} onClose={() => setTrialLimit(false)} />
     </div>
   );
 }

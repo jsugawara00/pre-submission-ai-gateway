@@ -3,8 +3,8 @@
  * 管理画面は作らず、このCLIで運用する（最小構成）。
  *
  * 使い方（npm 経由。-- の後に引数を渡す）:
- *   npm run code -- issue --label "○○商事" --max 30      # 発行（コードは自動生成）
- *   npm run code -- issue --label "△△貿易" --max 50 --code MYCODE-1234
+ *   npm run code -- issue --label "○○商事"               # 発行（--max省略で標準2回。コードは自動生成）
+ *   npm run code -- issue --label "△△貿易" --max 50 --code MYCODE-1234  # 上限を指定する場合
  *   npm run code -- list                                  # 一覧（使用状況つき）
  *   npm run code -- set-max <code> <回数>                 # 累計上限を変更
  *   npm run code -- disable <code>                        # 無効化（即停止）
@@ -102,7 +102,8 @@ async function main() {
       const flags = parseFlags(rest);
       const code = flags.code || generateCode();
       const label = flags.label ?? null;
-      const max = flags.max ? Number(flags.max) : 30;
+      // 標準はサンプル動作確認用に「2回」固定（API課金が絡むため）。必要なら --max で上書き。
+      const max = flags.max ? Number(flags.max) : 2;
       if (!Number.isInteger(max) || max <= 0) {
         console.error("--max は正の整数で指定してください。");
         process.exit(1);
@@ -158,7 +159,7 @@ async function main() {
       );
     } else {
       console.log("使い方:");
-      console.log('  npm run code -- issue --label "企業名" --max 30');
+      console.log('  npm run code -- issue --label "企業名"        # 標準2回（--max で上書き可）');
       console.log("  npm run code -- list");
       console.log("  npm run code -- set-max <code> <回数>");
       console.log("  npm run code -- disable <code>");
