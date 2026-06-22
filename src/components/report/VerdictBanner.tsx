@@ -38,7 +38,7 @@ export function VerdictBanner({ summary }: { summary: CheckResult["summary"] }) 
         <span>高リスク <strong>{summary.high}</strong></span>
         <span>中リスク <strong>{summary.medium}</strong></span>
         <span>低リスク <strong>{summary.low}</strong></span>
-        <span>照合できず <strong>{summary.unverified}</strong></span>
+        <span className={summary.unverified > 0 ? styles.countAlert : undefined}>照合できず <strong>{summary.unverified}</strong></span>
         <span>要確認 <strong>{summary.clarifications_open}</strong></span>
       </div>
     </div>

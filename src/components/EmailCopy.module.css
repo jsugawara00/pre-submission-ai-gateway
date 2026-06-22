@@ -1,0 +1,39 @@
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+.label {
+  color: var(--muted);
+}
+.email {
+  color: var(--foreground);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.btn:hover {
+  color: var(--primary);
+  background: var(--panel);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+/* コピー完了の控えめなフィードバック（普段は領域だけ確保して幅の揺れを防ぐ） */
+.feedback {
+  min-width: 5.5em;
+  font-size: 0.78rem;
+  color: var(--verdict-pass);
+}

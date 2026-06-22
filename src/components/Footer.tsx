@@ -1,5 +1,6 @@
 /** 全ページ共通フッター。About（開発意図の明文化）とGitHubへの導線を提供する。 */
 import Link from "next/link";
+import EmailCopy from "./EmailCopy";
 import styles from "./Footer.module.css";
 
 const GITHUB_URL = "https://github.com/jsugawara00/pre-submission-ai-gateway";
@@ -20,7 +21,7 @@ export default function Footer() {
           <span className={styles.sep} aria-hidden="true">
             ・
           </span>
-          <a href="mailto:jumpdevelop00@gmail.com">お問い合わせ</a>
+          <EmailCopy email="jumpdevelop00@gmail.com" />
         </nav>
       </div>
       <p className={styles.disclaimer}>

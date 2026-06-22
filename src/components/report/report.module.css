@@ -58,6 +58,11 @@
 .counts strong {
   color: var(--foreground);
 }
+/* 「照合できず」は1件以上でラベル・数字とも赤（未照合を見落とさせない） */
+.countAlert,
+.countAlert strong {
+  color: var(--risk-high);
+}
 
 /* セクション */
 .section {
@@ -73,6 +78,10 @@
 /* 「要確認」見出しは注意を引く強めの黄色 */
 .sectionTitleAlert {
   color: #ffd633;
+}
+/* 「照合できなかった項目」見出しは1件以上で赤（誠実に未照合を可視化する） */
+.sectionTitleUnverified {
+  color: var(--risk-high);
 }
 .empty {
   color: var(--muted);

@@ -60,7 +60,7 @@ export function Report({ result, checkId }: { result: CheckResult; checkId: stri
 
       {/* 照合できなかった項目（エンジンの誠実さ） */}
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>照合できなかった項目（{result.unverified.length}）</h2>
+        <h2 className={`${styles.sectionTitle}${result.unverified.length > 0 ? ` ${styles.sectionTitleUnverified}` : ""}`}>照合できなかった項目（{result.unverified.length}）</h2>
         {result.unverified.length === 0 ? (
           <p className={styles.empty}>すべての対象項目を照合できました。</p>
         ) : (
