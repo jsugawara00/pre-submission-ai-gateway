@@ -74,6 +74,10 @@ AIの照合システムで最も危険なのは「読めないものを、それ
 
 ![照合レポート：申告不可](docs/images/report_003.jpg)
 
+照合レポートはそのままPDFとして出力・保存できます。実際の出力サンプルはこちら：
+
+📄 [照合レポートのPDF出力サンプル（result_report.pdf）](docs/images/result_report.pdf)
+
 ### About
 
 ![About](docs/images/about.jpg)
