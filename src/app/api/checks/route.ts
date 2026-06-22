@@ -31,7 +31,7 @@ import {
 } from "@/lib/db/queries";
 
 export const runtime = "nodejs";
-export const maxDuration = 120; // 照合に時間がかかるため延長
+export const maxDuration = 300; // 照合（特に重いスキャン画像PDFのvision処理）に時間がかかるため上限まで延長（Vercel現行は全プラン最大300秒）
 
 const MAX_FILES = 10;
 
