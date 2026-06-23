@@ -51,6 +51,106 @@
   color: var(--muted);
 }
 
+/* ご利用の流れ（ログイン → 照合）。横並び、モバイルは縦並び。 */
+.flow {
+  list-style: none;
+  margin: 20px 0 4px;
+  padding: 0;
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+.flowStep {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 18px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+/* ステップ間の矢印（横並び時は右向き）。 */
+.flowStep:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  right: -13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary);
+  font-weight: 700;
+  z-index: 1;
+}
+.flowNum {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+.flowName {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.flowDesc {
+  width: 100%;
+  /* 説明文エリアを最大3行ぶんの高さに固定し、注記の罫線位置を全カードで揃える（③基準）。 */
+  min-height: calc(0.82rem * 1.55 * 3);
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.flowNote {
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .flow {
+    flex-direction: column;
+  }
+  .flowStep {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .flowNum {
+    flex-shrink: 0;
+  }
+  .flowName {
+    flex-shrink: 0;
+  }
+  .flowDesc,
+  .flowNote {
+    flex-basis: 100%;
+    padding-left: 44px;
+  }
+  .flowDesc {
+    min-height: 0; /* 縦並びでは説明文は可変でよい */
+  }
+  /* 縦並び時は下向き矢印に。 */
+  .flowStep:not(:last-child)::after {
+    content: "↓";
+    right: 50%;
+    top: auto;
+    bottom: -13px;
+    transform: translateX(50%);
+  }
+}
+
 .modeGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;

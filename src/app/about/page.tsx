@@ -28,6 +28,43 @@ export default function AboutPage() {
       </p>
 
       <section className={styles.section}>
+        <h2 className={styles.h2}>ご利用の流れ</h2>
+        <p>アクセスコードでの入室から照合レポートまで、操作は5ステップです。</p>
+        <ol className={styles.flow}>
+          <li className={styles.flowStep}>
+            <span className={styles.flowNum}>1</span>
+            <span className={styles.flowName}>入室</span>
+            <span className={styles.flowDesc}>発行されたアクセスコードでログイン</span>
+            <span className={styles.flowNote}>※ 閲覧は自由ですが、照合機能の利用にはアクセスコードが必要です。</span>
+          </li>
+          <li className={styles.flowStep}>
+            <span className={styles.flowNum}>2</span>
+            <span className={styles.flowName}>モード選択</span>
+            <span className={styles.flowDesc}>事前チェック／事後チェックを選ぶ</span>
+            <span className={styles.flowNote}>※ 事前は申告フォームのデモ。事後は輸入申告の照合を実際にお試しいただけます。</span>
+          </li>
+          <li className={styles.flowStep}>
+            <span className={styles.flowNum}>3</span>
+            <span className={styles.flowName}>書類を投入</span>
+            <span className={styles.flowDesc}>PDFをアップロード、又は申告フォームへ入力＋資料添付</span>
+            <span className={styles.flowNote}>※ メール取込機能も実装済みですが、独自ドメインの取得まで未提供となります。</span>
+          </li>
+          <li className={styles.flowStep}>
+            <span className={styles.flowNum}>4</span>
+            <span className={styles.flowName}>AIが照合</span>
+            <span className={styles.flowDesc}>複数書類を一枚の検査台に重ね、値を突き合わせる</span>
+            <span className={styles.flowNote}>※ 1回の照合は最大300秒。書類は目安6〜7ページまでが快適です。</span>
+          </li>
+          <li className={styles.flowStep}>
+            <span className={styles.flowNum}>5</span>
+            <span className={styles.flowName}>レポート確認</span>
+            <span className={styles.flowDesc}>食い違いを確認（判読が曖昧な箇所は聞き返し）</span>
+            <span className={styles.flowNote}>※ 照合レポートはPDFとして出力・保存できます。</span>
+          </li>
+        </ol>
+      </section>
+
+      <section className={styles.section}>
         <h2 className={styles.h2}>なぜ作ったか — NACCSギャップ分析</h2>
         <p>
           既存の申告システム（NACCS等）は、入力欄数・桁数・コード形式といった<strong>形式チェック</strong>と、品目コードや担保番号がシステム内DBに存在するかという
@@ -124,8 +161,10 @@ export default function AboutPage() {
       <section className={styles.section}>
         <h2 className={styles.h2}>技術スタックと設計ドキュメント</h2>
         <p>
-          TypeScript（strict）／ Next.js（App Router）／ React ／ Claude API（PDFを直接読解しJSONで構造化出力）／ MySQL ／ zod。
-          UIライブラリは使わず、素のReactとCSS Modulesで構築しています（依存最小化）。
+          TypeScript（strict）／ Next.js（App Router）／ React ／ Claude API（PDFを直接読解しJSONで構造化出力）／
+          データベースは mysql2 接続（本番は MySQL 互換の TiDB Serverless）／ 入力検証は zod。
+          アップロードしたPDFは AES-256-GCM で暗号化して Vercel Blob（非公開）に保存し、DBにはパスと SHA-256 ハッシュのみを持ちます。
+          ホスティングは Vercel。UIライブラリは使わず、素のReactとCSS Modulesで構築しています（依存最小化）。
         </p>
         <p className={styles.docLinks}>
           <a href={REPO_URL} target="_blank" rel="noreferrer">
