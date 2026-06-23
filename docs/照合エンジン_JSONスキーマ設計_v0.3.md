@@ -1,7 +1,7 @@
 # 照合エンジン JSONスキーマ設計 v0.3
 
 作成日: 2026年6月12日（v0.2から改訂）
-作成者: Jump(Junichi Sugawara) × Claude
+作成者: Jump × Claude
 対象: 申請前AI検問所システム（設計書v0.3準拠）
 
 改訂履歴:
