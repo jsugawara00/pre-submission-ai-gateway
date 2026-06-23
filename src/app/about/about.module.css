@@ -151,6 +151,21 @@
   }
 }
 
+/* フロー図の下：利用希望の連絡導線。 */
+.flowContact {
+  margin-top: 22px;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 12px 12px 0;
+}
+.flowContactText {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  line-height: 1.85;
+}
+
 .modeGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;

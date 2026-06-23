@@ -5,6 +5,7 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
+import EmailCopy from "@/components/EmailCopy";
 import styles from "./about.module.css";
 
 export const metadata: Metadata = {
@@ -35,33 +36,39 @@ export default function AboutPage() {
             <span className={styles.flowNum}>1</span>
             <span className={styles.flowName}>入室</span>
             <span className={styles.flowDesc}>発行されたアクセスコードでログイン</span>
-            <span className={styles.flowNote}>※ 閲覧は自由ですが、照合機能の利用にはアクセスコードが必要です。</span>
+            <span className={styles.flowNote}>※ 閲覧は自由ですが、照合機能の利用にはアクセスコードが必要です。(制限があるため、ご利用は2回まで)</span>
           </li>
           <li className={styles.flowStep}>
             <span className={styles.flowNum}>2</span>
             <span className={styles.flowName}>モード選択</span>
             <span className={styles.flowDesc}>事前チェック／事後チェックを選ぶ</span>
-            <span className={styles.flowNote}>※ 事前は申告フォームのデモ。事後は輸入申告の照合を実際にお試しいただけます。</span>
+            <span className={styles.flowNote}>※ 「事前」は申告フォームのデモ体験です。「事後」は輸入申告の照合を実際にお試しいただけます。</span>
           </li>
           <li className={styles.flowStep}>
             <span className={styles.flowNum}>3</span>
             <span className={styles.flowName}>書類を投入</span>
             <span className={styles.flowDesc}>PDFをアップロード、又は申告フォームへ入力＋資料添付</span>
-            <span className={styles.flowNote}>※ メール取込機能も実装済みですが、独自ドメインの取得まで未提供となります。</span>
+            <span className={styles.flowNote}>※ メール取込み機能も実装済みですが、現時点では独自ドメインを取得していないため未提供となります。</span>
           </li>
           <li className={styles.flowStep}>
             <span className={styles.flowNum}>4</span>
             <span className={styles.flowName}>AIが照合</span>
             <span className={styles.flowDesc}>複数書類を一枚の検査台に重ね、値を突き合わせる</span>
-            <span className={styles.flowNote}>※ 1回の照合は最大300秒。書類は目安6〜7ページまでが快適です。</span>
+            <span className={styles.flowNote}>※ 1回の照合は最大300秒です。テスト成功済みの実績から、投入書類は6〜7ページを目安にしてください。</span>
           </li>
           <li className={styles.flowStep}>
             <span className={styles.flowNum}>5</span>
             <span className={styles.flowName}>レポート確認</span>
             <span className={styles.flowDesc}>食い違いを確認（判読が曖昧な箇所は聞き返し）</span>
-            <span className={styles.flowNote}>※ 照合レポートはPDFとして出力・保存できます。</span>
+            <span className={styles.flowNote}>※ 聞き返し機能は1項目あたり2回が上限です。解決しない場合はレポートの内容でご確認ください。</span>
           </li>
         </ol>
+        <div className={styles.flowContact}>
+          <p className={styles.flowContactText}>
+            ご利用をご希望の場合は、<strong>企業の方</strong>は会社名とご担当者様のお名前を、<strong>個人の方</strong>はお名前と利用目的を明記のうえ、下記アドレスまでメールにてご連絡ください。アクセスコードを発行いたします。
+          </p>
+          <EmailCopy email="jumpdevelop00@gmail.com" />
+        </div>
       </section>
 
       <section className={styles.section}>
