@@ -78,7 +78,7 @@ AIの照合システムで最も危険なのは「読めないものを、それ
 
 📄 [照合レポートのPDF出力サンプル（result_report.pdf）](https://github.com/jsugawara00/pre-submission-ai-gateway/raw/main/docs/images/result_report.pdf)
 
-> 💡 PCでの閲覧を推奨します。スマートフォンでは端末のPDFビューアで開きます（ダウンロードになる場合があります）。
+> 💡 リンクからPDFをダウンロードしてご覧ください（PC・スマホ共通）。
 
 ### About
 
